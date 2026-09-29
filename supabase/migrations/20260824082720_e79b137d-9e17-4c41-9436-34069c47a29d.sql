@@ -1,0 +1,1 @@
+ALTER TABLE public.labels ADD COLUMN IF NOT EXISTS links jsonb NOT NULL DEFAULT '[]'::jsonb;

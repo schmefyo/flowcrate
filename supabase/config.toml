@@ -1,0 +1,4 @@
+project_id = "bsncdfzckmkqmraqvfev"
+
+[functions.refresh-source-cache]
+verify_jwt = false

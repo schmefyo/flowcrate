@@ -1,0 +1,1 @@
+ALTER TABLE public.followed_djs ADD COLUMN IF NOT EXISTS aliases text[] NOT NULL DEFAULT '{}'::text[];
