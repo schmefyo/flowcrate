@@ -90,7 +90,8 @@
   --sidebar-ring: oklch(0.72 0.19 32);
 
   --gradient-acid: linear-gradient(120deg, var(--primary), var(--accent));
-  --glow-acid: 0 0 0 1px color-mix(in oklab, var(--primary) 40%, transparent),
+  --glow-acid:
+    0 0 0 1px color-mix(in oklab, var(--primary) 40%, transparent),
     0 0 28px -6px color-mix(in oklab, var(--primary) 55%, transparent);
   --glow-magenta: 0 0 28px -6px color-mix(in oklab, var(--accent) 60%, transparent);
 }
@@ -142,4 +143,231 @@
   text-transform: uppercase;
   letter-spacing: 0.18em;
   font-size: 0.68rem;
+}
+
+/*
+ * Authenticated-app system. This is deliberately scoped to AppShell so the
+ * landing page and auth flow retain their own visual treatments.
+ */
+.fc-app {
+  --background: oklch(0.12 0.004 40);
+  --foreground: oklch(0.94 0.008 75);
+  --surface: oklch(0.155 0.005 40);
+  --card: oklch(0.155 0.005 40);
+  --card-foreground: oklch(0.94 0.008 75);
+  --popover: oklch(0.155 0.005 40);
+  --popover-foreground: oklch(0.94 0.008 75);
+  --primary: oklch(0.7 0.2 29);
+  --primary-foreground: oklch(0.14 0.02 30);
+  --secondary: oklch(0.19 0.005 40);
+  --secondary-foreground: oklch(0.94 0.008 75);
+  --muted: oklch(0.19 0.005 40);
+  --muted-foreground: oklch(0.66 0.01 60);
+  --accent: oklch(0.94 0.008 75);
+  --accent-foreground: oklch(0.12 0.004 40);
+  --border: oklch(0.27 0.006 45);
+  --input: oklch(0.34 0.008 45);
+  --ring: oklch(0.7 0.2 29);
+  --destructive: oklch(0.65 0.21 28);
+  --destructive-foreground: oklch(0.94 0.008 75);
+  --font-display: "Archivo", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --fc-display-stretch: 125%;
+  --fc-display-weight: 800;
+  --fc-display-tracking: -0.035em;
+
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.fc-app :focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+.fc-app .fc-masthead {
+  background: var(--background);
+}
+
+.fc-app .fc-wordmark,
+.fc-app .fc-page-title,
+.fc-app .fc-display-heading {
+  font-family: var(--font-display);
+  font-stretch: var(--fc-display-stretch);
+  font-weight: var(--fc-display-weight);
+  letter-spacing: var(--fc-display-tracking);
+  text-transform: uppercase;
+}
+
+.fc-app .fc-wordmark {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.fc-app .fc-page-title {
+  font-size: clamp(1.5rem, 3.75vw, 2.7rem);
+  line-height: 0.88;
+}
+
+.fc-app .fc-display-heading {
+  line-height: 0.9;
+}
+
+.fc-app .fc-section-title {
+  font-family: var(--font-display);
+  font-stretch: 115%;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.fc-app .fc-nav-link {
+  border-bottom: 2px solid transparent;
+  font-family: var(--font-display);
+  font-stretch: 105%;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.fc-app .fc-nav-link:hover,
+.fc-app .fc-nav-link-active {
+  background: transparent;
+  border-bottom-color: var(--primary);
+  color: var(--foreground);
+}
+
+.fc-app .fc-nav-link-active {
+  font-stretch: 115%;
+  font-weight: 750;
+  letter-spacing: 0.025em;
+}
+
+.fc-app .fc-button.fc-discover-control,
+.fc-app .fc-track-mood {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.fc-app .fc-button {
+  border-radius: 0;
+  box-shadow: none;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.fc-app .fc-button:hover {
+  box-shadow: none;
+}
+
+.fc-app .fc-input {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.fc-app select {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.fc-app .fc-badge {
+  border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.fc-app .fc-dialog-overlay,
+.fc-dialog-overlay {
+  background: oklch(0.05 0.003 40 / 0.9);
+}
+
+.fc-app .fc-dialog-content,
+.fc-dialog-content {
+  --background: oklch(0.12 0.004 40);
+  --foreground: oklch(0.94 0.008 75);
+  --primary: oklch(0.7 0.2 29);
+  --primary-foreground: oklch(0.14 0.02 30);
+  --secondary: oklch(0.19 0.005 40);
+  --secondary-foreground: oklch(0.94 0.008 75);
+  --muted-foreground: oklch(0.66 0.01 60);
+  --accent: oklch(0.94 0.008 75);
+  --accent-foreground: oklch(0.12 0.004 40);
+  --border: oklch(0.27 0.006 45);
+  --input: oklch(0.34 0.008 45);
+  --ring: oklch(0.7 0.2 29);
+
+  border-radius: 0;
+  background: oklch(0.155 0.005 40);
+  color: oklch(0.94 0.008 75);
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.fc-app .fc-dialog-close,
+.fc-dialog-close {
+  border-radius: 0;
+}
+
+.fc-dialog-content .fc-button,
+.fc-dialog-content .fc-input,
+.fc-dialog-content select {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.fc-app .fc-control-deck {
+  border-color: var(--border);
+}
+
+.fc-app .fc-catalogue-list {
+  border-radius: 0;
+  background: transparent;
+}
+
+.fc-app .fc-catalogue-row {
+  transition: background-color 150ms ease;
+}
+
+.fc-app .fc-catalogue-row:hover {
+  background: var(--surface);
+}
+
+.fc-app .fc-crate-tile,
+.fc-app .fc-detail-panel,
+.fc-app .fc-picker-panel {
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.fc-app .fc-crate-tile {
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.fc-app .fc-crate-tile:hover {
+  background: var(--surface);
+  border-color: var(--primary);
+  box-shadow: none;
+}
+
+.fc-app .fc-empty-state {
+  border-radius: 0;
+  border-style: solid;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }

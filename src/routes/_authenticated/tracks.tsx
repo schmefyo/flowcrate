@@ -712,7 +712,7 @@ function TracksPage() {
         </div>
       }
     >
-      <div className="mb-6 flex flex-wrap items-center gap-3">
+      <div className="fc-control-deck mb-6 flex flex-wrap items-center gap-3 border-y py-3">
         <Input
           value={search}
           onChange={(e) => {
@@ -730,7 +730,7 @@ function TracksPage() {
                 setMoodFilter(moodFilter === m ? null : m);
                 setVisible(TRACK_BATCH_SIZE);
               }}
-              className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+              className={`fc-track-mood rounded-none border px-3 py-1 text-xs transition-colors ${
                 moodFilter === m
                   ? "border-primary text-primary"
                   : "border-border text-muted-foreground hover:text-foreground"
@@ -838,11 +838,11 @@ function TracksPage() {
         <EmptyState text="No tracks yet." />
       ) : (
         <>
-          <ul className="divide-y divide-border rounded-md border border-border bg-card">
+          <ul className="fc-catalogue-list divide-y divide-border border border-border">
             {pageRows.map((t) => (
               <li
                 key={t.id}
-                className={`flex flex-wrap items-center gap-4 p-4 ${
+                className={`fc-catalogue-row flex flex-wrap items-center gap-4 p-4 ${
                   nowPlaying === `track-${t.id}` ? playingRowClass : ""
                 }`}
               >
@@ -851,10 +851,10 @@ function TracksPage() {
                     src={t.artwork_url}
                     alt={`${t.title} artwork`}
                     loading="lazy"
-                    className="h-12 w-12 shrink-0 rounded object-cover"
+                    className="h-12 w-12 shrink-0 object-cover"
                   />
                 ) : (
-                  <div className="h-12 w-12 shrink-0 rounded bg-secondary" aria-hidden="true" />
+                  <div className="h-12 w-12 shrink-0 bg-secondary" aria-hidden="true" />
                 )}
                 <DiscoverPreview
                   playbackKey={`track-${t.id}`}

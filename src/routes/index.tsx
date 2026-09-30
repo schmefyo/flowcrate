@@ -299,12 +299,12 @@ function Landing() {
             {FLOW.map((item) => (
               <li
                 key={item.pos}
-                className="fc-side-row fc-rule grid gap-4 border-b py-8 md:grid-cols-12 md:items-baseline md:gap-8 md:py-10"
+                className="fc-side-row fc-rule grid gap-4 border-b py-8 md:grid-cols-12 md:items-center md:gap-8 md:py-10"
               >
                 <span className="fc-side-pos fc-mono fc-faint text-sm md:col-span-1">
                   {item.pos}
                 </span>
-                <h3 className="fc-display text-[clamp(2.75rem,4.6vw,4.5rem)] md:col-span-5">
+                <h3 className="fc-display text-[clamp(2.0625rem,3.45vw,3.375rem)] md:col-span-5">
                   {item.title}
                 </h3>
                 <p className="max-w-xl leading-relaxed text-[var(--fc-dim)] md:col-span-4">

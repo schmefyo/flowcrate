@@ -134,10 +134,10 @@ export function CrateMatches({ crateId, seeds }: { crateId: string; seeds: Seed[
   }, [gapRows, counts]);
 
   return (
-    <section className="mb-8 rounded-md border border-border bg-card p-4">
+    <section className="fc-detail-panel mb-8 border border-border p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="label-mono text-muted-foreground">Crate intelligence</p>
+          <h2 className="fc-section-title">Crate intelligence</h2>
           <p className="text-sm text-muted-foreground">
             Find sets built like this crate, and the tracks artists play alongside them.
           </p>

@@ -336,6 +336,7 @@ function DiscoverPage() {
         <>
           <div className="mb-3 flex flex-wrap gap-2">
             <Button
+              className="fc-discover-control"
               size="sm"
               variant="outline"
               onClick={() => {
@@ -346,6 +347,7 @@ function DiscoverPage() {
               Select all
             </Button>
             <Button
+              className="fc-discover-control"
               size="sm"
               variant="outline"
               onClick={() => {
@@ -362,6 +364,7 @@ function DiscoverPage() {
               const on = picked.includes(artist.name);
               return (
                 <Button
+                  className="fc-discover-control"
                   key={artist.id}
                   size="sm"
                   variant={on ? "default" : "secondary"}
@@ -393,6 +396,7 @@ function DiscoverPage() {
             </label>
             {sort === "mixes" ? (
               <Button
+                className="fc-discover-control"
                 variant="outline"
                 size="sm"
                 disabled={findingMixes}

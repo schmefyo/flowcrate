@@ -12,7 +12,6 @@ const NAV = [
   { to: "/radar", label: "Radar" },
 ] as const;
 
-
 export function AppShell({
   title,
   subtitle,
@@ -27,10 +26,10 @@ export function AppShell({
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-x-4 gap-y-2 px-3 py-2 sm:gap-x-6 sm:px-5 sm:py-3">
-          <Link to="/" className="label-mono shrink-0 text-primary">
+    <div className="fc-app">
+      <header className="fc-masthead sticky top-0 z-30 border-b border-border">
+        <div className="mx-auto flex max-w-[88rem] items-center gap-x-4 gap-y-2 px-3 py-3 sm:gap-x-6 sm:px-6 sm:py-4">
+          <Link to="/" className="fc-wordmark shrink-0 text-primary">
             FlowCrate
           </Link>
           <nav className="-mx-1 flex flex-1 items-center gap-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -38,8 +37,8 @@ export function AppShell({
               <Link
                 key={item.to}
                 to={item.to}
-                className="shrink-0 whitespace-nowrap rounded-sm px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:px-3"
-                activeProps={{ className: "bg-secondary text-foreground" }}
+                className="fc-nav-link shrink-0 whitespace-nowrap px-2 py-2 text-muted-foreground transition-colors sm:px-3"
+                activeProps={{ className: "fc-nav-link-active" }}
               >
                 {item.label}
               </Link>
@@ -59,11 +58,11 @@ export function AppShell({
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-5 sm:py-10">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-3 sm:mb-8 sm:gap-4">
+      <main className="mx-auto max-w-[88rem] px-4 py-8 sm:px-6 sm:py-12">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6 sm:mb-10">
           <div>
-            <h1 className="text-2xl font-bold sm:text-4xl">{title}</h1>
-            {subtitle ? <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p> : null}
+            <h1 className="fc-page-title">{title}</h1>
+            {subtitle ? <p className="mt-3 text-sm text-muted-foreground">{subtitle}</p> : null}
           </div>
           {action}
         </div>
@@ -75,7 +74,7 @@ export function AppShell({
 
 export function EmptyState({ text }: { text: string }) {
   return (
-    <div className="rounded-md border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
+    <div className="fc-empty-state border border-border p-12 text-center text-muted-foreground">
       {text}
     </div>
   );

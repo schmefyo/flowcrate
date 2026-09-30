@@ -225,7 +225,7 @@ function CrateDetail() {
       }
     >
       {picking ? (
-        <div className="mb-8 rounded-md border border-border bg-card p-4">
+        <div className="fc-picker-panel mb-8 border border-border p-4">
           <p className="label-mono mb-3 text-muted-foreground">Pick from your tracks</p>
           {available.length === 0 ? (
             <p className="text-sm text-muted-foreground">
@@ -236,7 +236,7 @@ function CrateDetail() {
               {available.map((t) => (
                 <li
                   key={t.id}
-                  className={`flex flex-wrap items-center gap-2 rounded-sm border border-border px-3 py-2 ${
+                  className={`fc-catalogue-row flex flex-wrap items-center gap-2 border border-border px-3 py-2 ${
                     nowPlaying === `pick-${t.id}` ? playingRowClass : ""
                   }`}
                 >
@@ -281,13 +281,13 @@ function CrateDetail() {
           <p className="label-mono mb-2 text-muted-foreground">
             Drag a row by its handle to reorder{saveOrder.isPending ? " · saving…" : ""}
           </p>
-          <ol className="divide-y divide-border rounded-md border border-border bg-card">
+          <ol className="fc-catalogue-list divide-y divide-border border border-border">
             {contents.map((row, i) => (
               <li
                 key={row.id}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => dropOn(row.id)}
-                className={`flex flex-wrap items-center gap-4 p-4 ${
+                className={`fc-catalogue-row flex flex-wrap items-center gap-4 p-4 ${
                   dragId === row.id ? "opacity-50" : ""
                 } ${nowPlaying === `crate-${row.id}` ? playingRowClass : ""}`}
               >

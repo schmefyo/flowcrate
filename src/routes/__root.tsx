@@ -13,7 +13,6 @@ import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -79,16 +78,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "FlowCrate" },
       {
         name: "description",
-        content:
-          "FlowCrate is your personal music brain: tracks, crates, labels and connections.",
+        content: "FlowCrate is your personal music brain: tracks, crates, labels and connections.",
       },
       { property: "og:title", content: "FlowCrate" },
       {
         property: "og:description",
-        content: "Capture what you discover, organize it by mood, energy, and context, and follow the connections to find what's next.",
+        content:
+          "Capture what you discover, organize it by mood, energy, and context, and follow the connections to find what's next.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "theme-color", content: "#252424" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -98,7 +98,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.svg?v=flowcrate-20260930b", type: "image/svg+xml", sizes: "any" },
+      { rel: "icon", href: "/favicon-96x96.png", type: "image/png", sizes: "96x96" },
+      { rel: "shortcut icon", href: "/favicon.ico" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
+      { rel: "manifest", href: "/site.webmanifest" },
     ],
   }),
   shellComponent: RootShell,

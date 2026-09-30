@@ -140,10 +140,10 @@ function CratesPage() {
               key={c.id}
               to="/crates/$crateId"
               params={{ crateId: c.id }}
-              className="group rounded-md border border-border bg-card p-5 transition-shadow hover:glow-ring"
+              className="fc-crate-tile group border border-border p-5"
             >
-              <div className="label-mono text-accent">{c.mood ?? "no mood set"}</div>
-              <h2 className="mt-2 text-xl font-semibold group-hover:text-primary">{c.name}</h2>
+              <div className="label-mono text-primary">{c.mood ?? "no mood set"}</div>
+              <h2 className="fc-display-heading mt-2 text-xl group-hover:text-primary">{c.name}</h2>
               {c.description ? (
                 <p className="mt-2 text-sm text-muted-foreground">{c.description}</p>
               ) : null}
