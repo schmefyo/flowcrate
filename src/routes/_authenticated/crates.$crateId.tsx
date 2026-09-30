@@ -17,9 +17,9 @@ import { SourceIcon } from "@/components/atlas/SourceIcon";
 export const Route = createFileRoute("/_authenticated/crates/$crateId")({
   head: () => ({
     meta: [
-      { title: "Crate — FlowCrate" },
+      { title: "Crate — Flowcrate" },
       { name: "description", content: "The tracks inside this crate, in playing order." },
-      { property: "og:title", content: "Crate — FlowCrate" },
+      { property: "og:title", content: "Crate — Flowcrate" },
       { property: "og:description", content: "The tracks inside this crate, in playing order." },
     ],
   }),

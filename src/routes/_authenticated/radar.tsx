@@ -13,12 +13,12 @@ import { allNamesFor, canonicalName, canonicalNameMap } from "@/lib/artist-name"
 export const Route = createFileRoute("/_authenticated/radar")({
   head: () => ({
     meta: [
-      { title: "Radar — FlowCrate" },
+      { title: "Radar — Flowcrate" },
       {
         name: "description",
         content: "The newest sets from every DJ and artist you follow, in one feed.",
       },
-      { property: "og:title", content: "Radar — FlowCrate" },
+      { property: "og:title", content: "Radar — Flowcrate" },
       {
         property: "og:description",
         content: "One chronological feed of the newest sets from the artists you follow.",

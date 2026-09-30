@@ -25,12 +25,12 @@ export const Route = createFileRoute("/_authenticated/artists/$name")({
     const name = decodeURIComponent(params.name);
     return {
       meta: [
-        { title: `${name} — FlowCrate` },
+        { title: `${name} — Flowcrate` },
         {
           name: "description",
           content: `Newest sets and most played tracks from ${name}, built from set tracklists.`,
         },
-        { property: "og:title", content: `${name} — FlowCrate` },
+        { property: "og:title", content: `${name} — Flowcrate` },
         {
           property: "og:description",
           content: `Newest sets and most played tracks from ${name}.`,

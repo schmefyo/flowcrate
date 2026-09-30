@@ -30,7 +30,7 @@ export function AppShell({
       <header className="fc-masthead sticky top-0 z-30 border-b border-border">
         <div className="mx-auto flex max-w-[88rem] items-center gap-x-4 gap-y-2 px-3 py-3 sm:gap-x-6 sm:px-6 sm:py-4">
           <Link to="/" className="fc-wordmark shrink-0 text-primary">
-            FlowCrate
+            Flowcrate
           </Link>
           <nav className="-mx-1 flex flex-1 items-center gap-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {NAV.map((item) => (

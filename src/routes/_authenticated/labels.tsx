@@ -31,12 +31,12 @@ const SORTS: { value: SortKey; label: string }[] = [
 export const Route = createFileRoute("/_authenticated/labels")({
   head: () => ({
     meta: [
-      { title: "Labels & collectives — FlowCrate" },
+      { title: "Labels & collectives — Flowcrate" },
       {
         name: "description",
         content: "Follow the labels, crews and collectives behind the music you love.",
       },
-      { property: "og:title", content: "Labels & collectives — FlowCrate" },
+      { property: "og:title", content: "Labels & collectives — Flowcrate" },
       { property: "og:description", content: "The crews behind the records you keep." },
     ],
   }),

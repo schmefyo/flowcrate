@@ -32,13 +32,13 @@ import type { Popularity } from "@/lib/popularity.server";
 export const Route = createFileRoute("/_authenticated/discover")({
   head: () => ({
     meta: [
-      { title: "Discover — FlowCrate" },
+      { title: "Discover — Flowcrate" },
       {
         name: "description",
         content:
           "See the tracks played most across the DJs and artists you pick, mined from their tracklists.",
       },
-      { property: "og:title", content: "Discover — FlowCrate" },
+      { property: "og:title", content: "Discover — Flowcrate" },
       {
         property: "og:description",
         content: "Most played tracks across the artists you choose to scan.",

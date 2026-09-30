@@ -7,17 +7,17 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FlowCrate" },
+      { title: "Flowcrate" },
       {
         name: "description",
         content:
-          "FlowCrate is your personal music brain—capture what you discover, organize it by mood, energy, and context, and follow the connections to find what's next.",
+          "Flowcrate is your personal music map—capture what you discover, organize it by mood, energy, and context, and follow the connections to find what's next.",
       },
-      { property: "og:title", content: "FlowCrate" },
+      { property: "og:title", content: "Flowcrate" },
       {
         property: "og:description",
         content:
-          "FlowCrate is your personal music brain—capture what you discover, organize it by mood, energy, and context, and follow the connections to find what's next.",
+          "Flowcrate is your personal music map—capture what you discover, organize it by mood, energy, and context, and follow the connections to find what's next.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -187,7 +187,7 @@ function Landing() {
             <span className="fc-mono fc-faint hidden sm:inline">FC—001</span>
           </Link>
           <Link to={entry} className="fc-link">
-            {signedIn ? "Open FlowCrate" : "Sign in"}
+            {signedIn ? "Open Flowcrate" : "Sign in"}
           </Link>
         </div>
       </header>
@@ -198,7 +198,7 @@ function Landing() {
             For DJs, diggers & obsessive listeners
           </p>
 
-          <h1 className="fc-display mt-8 text-[clamp(3.1rem,11.6vw,11.5rem)] sm:mt-10">
+          <h1 className="fc-display mt-8 text-[clamp(2.635rem,9.86vw,9.775rem)] sm:mt-10">
             Dig deeper.
             <br />
             Save what
@@ -210,20 +210,20 @@ function Landing() {
             <div className="flex flex-col gap-10 lg:col-span-4">
               <p className="max-w-md text-lg leading-relaxed text-[var(--fc-dim)]">
                 <span className="text-[var(--fc-paper)]">
-                  FlowCrate is your personal music brain.
+                  Flowcrate is your personal music map.
                 </span>{" "}
                 Follow the links between artists, labels, DJs and scenes, keep what you find, and
                 sort it in a way that makes sense to you.
               </p>
               <div>
                 <Link to={entry} className="fc-btn">
-                  {signedIn ? "Open FlowCrate" : "Start building your crate"}
+                  {signedIn ? "Open Flowcrate" : "Start building your crate"}
                   <span aria-hidden className="fc-btn-arrow">
                     →
                   </span>
                 </Link>
               </div>
-              <ol className="fc-rule mt-auto hidden border-t lg:block">
+              <ol className="fc-rule mt-auto hidden border-t lg:mb-16 lg:block">
                 {FLOW.map((item) => (
                   <li
                     key={item.pos}
@@ -291,7 +291,7 @@ function Landing() {
             </div>
             <p className="max-w-lg self-end text-lg leading-relaxed text-[var(--fc-dim)] lg:col-span-6 lg:col-start-7">
               Digging starts loose — a track ID from a mix, a label someone mentioned, a DJ you keep
-              coming back to. FlowCrate follows where it leads and keeps hold of what you find.
+              coming back to. Flowcrate follows where it leads and keeps hold of what you find.
             </p>
           </div>
 
@@ -438,11 +438,11 @@ function Landing() {
             <div className="flex min-w-0 flex-col gap-10 self-end lg:col-span-4">
               <p className="max-w-md leading-relaxed text-[var(--fc-dim)]">
                 Every record points somewhere else — another artist, another label, another city,
-                another scene. FlowCrate helps you keep following.
+                another scene. Flowcrate helps you keep following.
               </p>
               <div>
                 <Link to={entry} className="fc-btn">
-                  {signedIn ? "Open FlowCrate" : "Start digging"}
+                  {signedIn ? "Open Flowcrate" : "Start digging"}
                   <span aria-hidden className="fc-btn-arrow">
                     →
                   </span>
@@ -456,7 +456,7 @@ function Landing() {
       <footer className="fc-rule border-t">
         <div className="fc-mono fc-faint mx-auto flex max-w-[88rem] flex-wrap justify-between gap-3 px-5 py-6 sm:px-8">
           <span>Built for the dancefloor · everything you save is private to you</span>
-          <span>FlowCrate — independent, in active development</span>
+          <span>Flowcrate — independent, in active development</span>
         </div>
       </footer>
     </div>

@@ -9,15 +9,15 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — FlowCrate" },
+      { title: "Sign in — Flowcrate" },
       {
         name: "description",
-        content: "Sign in to FlowCrate — your personal music brain for capturing tracks, crates, and connections.",
+        content: "Sign in to Flowcrate — your personal music brain for capturing tracks, crates, and connections.",
       },
-      { property: "og:title", content: "Sign in — FlowCrate" },
+      { property: "og:title", content: "Sign in — Flowcrate" },
       {
         property: "og:description",
-        content: "Sign in to FlowCrate — your personal music brain for capturing tracks, crates, and connections.",
+        content: "Sign in to Flowcrate — your personal music brain for capturing tracks, crates, and connections.",
       },
     ],
   }),
@@ -81,10 +81,10 @@ function AuthPage() {
     <div className="flex min-h-screen items-center justify-center px-5 py-16">
       <div className="w-full max-w-sm">
         <Link to="/" className="label-mono text-primary">
-          ← FlowCrate
+          ← Flowcrate
         </Link>
         <h1 className="mt-6 text-3xl font-bold">
-          {mode === "signin" ? "Back to your crates" : "Start your FlowCrate"}
+          {mode === "signin" ? "Back to your crates" : "Start your Flowcrate"}
         </h1>
 
         <p className="mt-2 text-sm text-muted-foreground">

@@ -75,12 +75,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "FlowCrate" },
+      { title: "Flowcrate" },
       {
         name: "description",
-        content: "FlowCrate is your personal music brain: tracks, crates, labels and connections.",
+        content: "Flowcrate is your personal music brain: tracks, crates, labels and connections.",
       },
-      { property: "og:title", content: "FlowCrate" },
+      { property: "og:title", content: "Flowcrate" },
       {
         property: "og:description",
         content:

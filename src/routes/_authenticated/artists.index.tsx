@@ -27,13 +27,13 @@ import { groupByName, normalizeArtistName } from "@/lib/artist-name";
 export const Route = createFileRoute("/_authenticated/artists/")({
   head: () => ({
     meta: [
-      { title: "DJs & Artists — FlowCrate" },
+      { title: "DJs & Artists — Flowcrate" },
       {
         name: "description",
         content:
           "Every DJ and artist you follow, with their real pages and a feed of their newest sets.",
       },
-      { property: "og:title", content: "DJs & Artists — FlowCrate" },
+      { property: "og:title", content: "DJs & Artists — Flowcrate" },
       {
         property: "og:description",
         content: "Your roster of DJs and artists, with links and recent sets.",

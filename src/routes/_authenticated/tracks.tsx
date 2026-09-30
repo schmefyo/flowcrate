@@ -43,12 +43,12 @@ import { ImportPlaylistDialog } from "@/components/atlas/ImportPlaylistDialog";
 export const Route = createFileRoute("/_authenticated/tracks")({
   head: () => ({
     meta: [
-      { title: "Tracks — FlowCrate" },
+      { title: "Tracks — Flowcrate" },
       {
         name: "description",
         content: "Every track you've discovered: artist, label, key, BPM and mood.",
       },
-      { property: "og:title", content: "Tracks — FlowCrate" },
+      { property: "og:title", content: "Tracks — Flowcrate" },
       { property: "og:description", content: "Your saved tracks in one place." },
     ],
   }),

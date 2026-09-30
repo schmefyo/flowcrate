@@ -22,9 +22,9 @@ import { useMoods } from "@/lib/moods";
 export const Route = createFileRoute("/_authenticated/crates/")({
   head: () => ({
     meta: [
-      { title: "Crates — FlowCrate" },
+      { title: "Crates — Flowcrate" },
       { name: "description", content: "Build crates of tracks for every mood and every room." },
-      { property: "og:title", content: "Crates — FlowCrate" },
+      { property: "og:title", content: "Crates — Flowcrate" },
       { property: "og:description", content: "Crates of tracks for every mood and every room." },
     ],
   }),
