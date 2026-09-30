@@ -188,7 +188,7 @@ export function ImportPlaylistDialog() {
                 : `Import ${selected.length} track${selected.length === 1 ? "" : "s"}`}
             </Button>
             <p className="text-xs text-muted-foreground">
-              BPM, key, genre and label aren't in Spotify's playlist data — use “Fill missing
+              BPM, key, genre, and label aren't in Spotify's playlist data — use “Fill missing
               info” on the Tracks page afterwards.
             </p>
           </div>

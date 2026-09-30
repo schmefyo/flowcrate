@@ -34,7 +34,7 @@ export const Route = createFileRoute("/_authenticated/labels")({
       { title: "Labels & collectives — Flowcrate" },
       {
         name: "description",
-        content: "Follow the labels, crews and collectives behind the music you love.",
+        content: "Follow the labels, crews, and collectives behind the music you love.",
       },
       { property: "og:title", content: "Labels & collectives — Flowcrate" },
       { property: "og:description", content: "The crews behind the records you keep." },

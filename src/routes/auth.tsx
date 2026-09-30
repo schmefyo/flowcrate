@@ -88,7 +88,7 @@ function AuthPage() {
         </h1>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          Your crates, tracks and labels stay private to you.
+          Your crates, tracks, and labels stay private to you.
         </p>
 
         <form onSubmit={onSubmit} className="mt-8 space-y-4">

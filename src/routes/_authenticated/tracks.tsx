@@ -46,7 +46,7 @@ export const Route = createFileRoute("/_authenticated/tracks")({
       { title: "Tracks — Flowcrate" },
       {
         name: "description",
-        content: "Every track you've discovered: artist, label, key, BPM and mood.",
+        content: "Every track you've discovered: artist, label, key, BPM, and mood.",
       },
       { property: "og:title", content: "Tracks — Flowcrate" },
       { property: "og:description", content: "Your saved tracks in one place." },
@@ -489,7 +489,7 @@ function TracksPage() {
   return (
     <AppShell
       title="Tracks"
-      subtitle="Everything you've dug up — searchable by artist, label or mood."
+      subtitle="Everything you've dug up — searchable by artist, label, or mood."
       action={
         <div className="flex items-center gap-2">
           <ImportPlaylistDialog />

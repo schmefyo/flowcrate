@@ -20,7 +20,7 @@ export const Route = createFileRoute("/")({
           "Flowcrate is your personal music map—capture what you discover, organize it by mood, energy, and context, and follow the connections to find what's next.",
       },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       {
@@ -43,19 +43,19 @@ const FLOW = [
   {
     pos: "A2",
     title: "Follow",
-    body: "Every track connects to the artists who made it, the labels that released it and the DJs who play it. Pull on any of those threads and see where it leads.",
+    body: "Every track connects to the artists who made it, the labels that released it, and the DJs who play it. Pull on any of those threads and see where it leads.",
     where: "DJs & Artists · Labels",
   },
   {
     pos: "B1",
     title: "Save",
-    body: "Keep what stops you in your tracks. Artist, release, label, BPM and key come attached where available, along with the mixes it has turned up in.",
+    body: "Keep what stops you in your tracks. Artist, release, label, BPM, and key come attached where available, along with the mixes it has turned up in.",
     where: "Tracks",
   },
   {
     pos: "B2",
     title: "Crate",
-    body: "Sort your finds by sound, scene, label, era or feeling. Some crates stay personal archives — and some, eventually, become sets.",
+    body: "Sort your finds by sound, scene, label, era, or feeling. Some crates stay personal archives — and some, eventually, become sets.",
     where: "Crates · Sets, later",
   },
 ];
@@ -132,13 +132,13 @@ const FEATURES = [
     no: "01",
     kicker: "Tracks",
     title: "Save what moves you",
-    body: "Artist, label, BPM, key, mood tags and an energy rating — every record you dig up, searchable in seconds.",
+    body: "Artist, label, BPM, key, mood tags, and an energy rating — every record you dig up, searchable in seconds.",
   },
   {
     no: "02",
     kicker: "Crates",
     title: "Crates for every mood",
-    body: "Group tracks by feeling, room or hour of the night. Openers, peak-time weapons, and late-night energy.",
+    body: "Group tracks by feeling, room, or hour of the night. Openers, peak-time weapons, and late-night energy.",
   },
   {
     no: "03",
@@ -195,7 +195,7 @@ function Landing() {
       <main>
         <section className="mx-auto max-w-[88rem] px-5 pt-10 sm:px-8 sm:pt-14">
           <p className="fc-mono fc-dim fc-rule border-b pb-4">
-            For DJs, diggers & obsessive listeners
+            For DJs, diggers, & obsessive listeners
           </p>
 
           <h1 className="fc-display mt-8 text-[clamp(2.635rem,9.86vw,9.775rem)] sm:mt-10">
@@ -212,7 +212,7 @@ function Landing() {
                 <span className="text-[var(--fc-paper)]">
                   Flowcrate is your personal music map.
                 </span>{" "}
-                Follow the links between artists, labels, DJs and scenes, keep what you find, and
+                Follow the links between artists, labels, DJs, and scenes, keep what you find, and
                 sort it in a way that makes sense to you.
               </p>
               <div>
@@ -328,7 +328,7 @@ function Landing() {
                 context.
               </h2>
               <p className="mt-8 max-w-sm leading-relaxed text-[var(--fc-dim)]">
-                Where available, tracks carry their artist, release, label and year — and the links
+                Where available, tracks carry their artist, release, label, and year — and the links
                 out to everything around them. Your library remembers where things came from, not
                 just what they're called.
               </p>

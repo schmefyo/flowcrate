@@ -78,7 +78,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Flowcrate" },
       {
         name: "description",
-        content: "Flowcrate is your personal music brain: tracks, crates, labels and connections.",
+        content: "Flowcrate is your personal music brain: tracks, crates, labels, and connections.",
       },
       { property: "og:title", content: "Flowcrate" },
       {
@@ -87,7 +87,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Capture what you discover, organize it by mood, energy, and context, and follow the connections to find what's next.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "/flowcrate-social.jpg" },
+      { property: "og:image:type", content: "image/jpeg" },
+      { property: "og:image:width", content: "1600" },
+      { property: "og:image:height", content: "900" },
+      {
+        property: "og:image:alt",
+        content: "Silhouettes dancing in a basement club",
+      },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "/flowcrate-social.jpg" },
+      {
+        name: "twitter:image:alt",
+        content: "Silhouettes dancing in a basement club",
+      },
       { name: "theme-color", content: "#252424" },
     ],
     links: [
