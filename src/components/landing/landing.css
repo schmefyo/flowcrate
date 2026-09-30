@@ -191,22 +191,6 @@
     background: var(--fc-ink-2);
   }
 
-  & .fc-meter {
-    display: inline-flex;
-    align-items: flex-end;
-    gap: 2px;
-    height: 14px;
-
-    & span {
-      width: 3px;
-      background: var(--fc-faint);
-    }
-
-    & span[data-on] {
-      background: var(--fc-coral);
-    }
-  }
-
   & .fc-ticker {
     display: flex;
     width: max-content;

@@ -37,87 +37,45 @@ const FLOW = [
   {
     pos: "A1",
     title: "Discover",
-    body: "Start with a DJ whose taste you trust, a set you love, or a track already in your library. See who's playing it, how often it turns up across mixes, and what sits next to it.",
-    where: "Discover · Radar · DJs & Artists",
+    body: "Start anywhere — a DJ whose taste you trust, a mix you can't stop replaying, a record already in your bag. Discover and Radar surface what's moving around the music you care about.",
+    where: "Discover · Radar",
   },
   {
     pos: "A2",
-    title: "Save",
-    body: "Pull it into your library. Artist, release, label, BPM, key and the sets it has appeared in — context attached wherever it exists.",
-    where: "Tracks",
+    title: "Follow",
+    body: "Every track connects to the artists who made it, the labels that released it and the DJs who play it. Pull on any of those threads and see where it leads.",
+    where: "DJs & Artists · Labels",
   },
   {
     pos: "B1",
-    title: "Crate",
-    body: "Group by sound, room or hour of the night. Openers, peak-time weapons, late-night energy — or categories that only make sense to you.",
-    where: "Crates",
+    title: "Save",
+    body: "Keep what stops you in your tracks. Artist, release, label, BPM and key come attached where available, along with the mixes it has turned up in.",
+    where: "Tracks",
   },
   {
     pos: "B2",
-    title: "Set",
-    body: "Turn loose digging into something you can play. Find sets that match your crates and fill the gaps with what comes next.",
-    where: "Crate matches · Set building in progress",
+    title: "Crate",
+    body: "Sort your finds by sound, scene, label, era or feeling. Some crates stay personal archives; some end up in the bag for Saturday.",
+    where: "Crates",
   },
 ];
 
 const EXAMPLE_CRATE = [
+  { artist: "Joey Beltram", title: "Energy Flash", label: "R&S Records", year: 1990 },
+  { artist: "Plastikman", title: "Spastik", label: "NovaMute / Plus 8", year: 1993 },
+  { artist: "Basic Channel", title: "Phylyps Trak", label: "Basic Channel", year: 1993 },
+  { artist: "Dave Clarke", title: "Wisdom To The Wise (Red 2)", label: "Bush", year: 1994 },
+  { artist: "Green Velvet", title: "Flash", label: "Relief Records", year: 1995 },
+  { artist: "Jeff Mills", title: "The Bells", label: "Purpose Maker", year: 1996 },
   {
-    artist: "Kessler Unit",
-    title: "Sodium Hours",
-    label: "Nachtform",
-    bpm: 128,
-    key: "5A",
-    sets: 23,
-  },
-  {
-    artist: "Ines Varga",
-    title: "Concrete Choir",
-    label: "Tieflicht",
-    bpm: 129,
-    key: "6A",
-    sets: 17,
-  },
-  {
-    artist: "Mørk Tape",
-    title: "Pressure Drop (Dub)",
-    label: "Haze Loops",
-    bpm: 130,
-    key: "6A",
-    sets: 31,
-  },
-  {
-    artist: "D. Achterberg",
-    title: "Ring Road",
-    label: "Stahlwerk",
-    bpm: 131,
-    key: "7A",
-    sets: 12,
-  },
-  {
-    artist: "Lumo Field",
-    title: "Subway Interlude",
-    label: "Lowfreq Archive",
-    bpm: 132,
-    key: "8A",
-    sets: 9,
-  },
-  {
-    artist: "Oyelaran",
-    title: "Ninety Nine Steps",
-    label: "Outer Ring",
-    bpm: 133,
-    key: "8A",
-    sets: 26,
+    artist: "DJ Rolando",
+    title: "Knights of the Jaguar",
+    label: "Underground Resistance",
+    year: 1999,
   },
 ];
 
-const THREAD = [
-  "Track",
-  "Played by 14 DJs",
-  "Room 2 closing set",
-  "Label: Nachtform",
-  "Next record",
-];
+const THREAD = ["The Bells", "Jeff Mills", "Underground Resistance", "Knights of the Jaguar"];
 
 const FEATURES = [
   {
@@ -142,7 +100,7 @@ const FEATURES = [
     no: "04",
     kicker: "Discover",
     title: "Find what comes next",
-    body: "See which DJs play your tracks, find sets that match your crates, and fill the gaps with what comes next.",
+    body: "See which DJs play your tracks, follow the artists and labels around them, and keep digging.",
   },
 ];
 
@@ -178,15 +136,6 @@ function Landing() {
             <span className="fc-display text-xl tracking-[-0.02em]">Flowcrate</span>
             <span className="fc-mono fc-faint hidden sm:inline">FC—001</span>
           </Link>
-          <div aria-hidden className="fc-mono fc-dim hidden items-center gap-3 md:flex">
-            <span>Discover</span>
-            <span className="fc-faint">/</span>
-            <span>Save</span>
-            <span className="fc-faint">/</span>
-            <span>Crate</span>
-            <span className="fc-faint">/</span>
-            <span>Set</span>
-          </div>
           <Link to={entry} className="fc-link">
             {signedIn ? "Open FlowCrate" : "Sign in"}
           </Link>
@@ -195,14 +144,9 @@ function Landing() {
 
       <main>
         <section className="mx-auto max-w-[88rem] px-5 pt-10 sm:px-8 sm:pt-14">
-          <div className="fc-mono fc-dim fc-rule grid gap-2 border-b pb-4 sm:grid-cols-3">
-            <span>For DJs, diggers & obsessive listeners</span>
-            <span className="sm:text-center">Music discovery / record box</span>
-            <span className="sm:text-right">
-              Discover <span className="fc-coral">→</span> Save <span className="fc-coral">→</span>{" "}
-              Crate <span className="fc-coral">→</span> Set
-            </span>
-          </div>
+          <p className="fc-mono fc-dim fc-rule border-b pb-4">
+            For DJs, diggers & obsessive listeners
+          </p>
 
           <h1 className="fc-display mt-8 text-[clamp(3.1rem,11.6vw,11.5rem)] sm:mt-10">
             Dig deeper.
@@ -218,8 +162,8 @@ function Landing() {
                 <span className="text-[var(--fc-paper)]">
                   FlowCrate is your personal music brain.
                 </span>{" "}
-                Follow the connections between tracks, DJs, sets and labels — then capture what you
-                find and sort it by mood, energy and context until it's ready to play.
+                Follow the links between artists, labels, DJs and scenes, keep what you find, and
+                sort it in a way that makes sense to you.
               </p>
               <div className="flex flex-wrap items-center gap-x-8 gap-y-5">
                 <Link to={entry} className="fc-btn">
@@ -235,17 +179,17 @@ function Landing() {
                 )}
               </div>
               <ol className="fc-rule mt-auto hidden border-t lg:block">
-                {FLOW.map((step) => (
+                {FLOW.map((item) => (
                   <li
-                    key={step.pos}
+                    key={item.pos}
                     className="fc-rule flex items-baseline justify-between gap-4 border-b py-2.5"
                   >
                     <span className="flex items-baseline gap-4">
-                      <span className="fc-mono fc-coral">{step.pos}</span>
-                      <span className="fc-condensed text-lg">{step.title}</span>
+                      <span className="fc-mono fc-coral">{item.pos}</span>
+                      <span className="fc-condensed text-lg">{item.title}</span>
                     </span>
                     <span className="fc-mono fc-faint text-right">
-                      {step.where.split(" · ")[0]}
+                      {item.where.split(" · ")[0]}
                     </span>
                   </li>
                 ))}
@@ -291,35 +235,37 @@ function Landing() {
         <section className="mx-auto max-w-[88rem] px-5 py-20 sm:px-8 sm:py-28">
           <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
             <div className="min-w-0 lg:col-span-4">
-              <p className="fc-mono fc-coral">The flow · Side A / Side B</p>
+              <p className="fc-mono fc-coral">How digging works · Side A / Side B</p>
               <h2 className="fc-display mt-5 text-[clamp(2.4rem,10vw,3.75rem)]">
-                From the floor
+                One record
                 <br />
-                to the set.
+                leads to
+                <br />
+                the next.
               </h2>
             </div>
             <p className="max-w-lg self-end text-lg leading-relaxed text-[var(--fc-dim)] lg:col-span-6 lg:col-start-7">
               Digging starts loose — a track ID from a mix, a label someone mentioned, a DJ you keep
-              coming back to. FlowCrate gives each step somewhere to go.
+              coming back to. FlowCrate follows where it leads and keeps hold of what you find.
             </p>
           </div>
 
           <ol className="fc-rule mt-14 border-t">
-            {FLOW.map((step) => (
+            {FLOW.map((item) => (
               <li
-                key={step.pos}
+                key={item.pos}
                 className="fc-side-row fc-rule grid gap-4 border-b py-8 md:grid-cols-12 md:items-baseline md:gap-8 md:py-10"
               >
                 <span className="fc-side-pos fc-mono fc-faint text-sm md:col-span-1">
-                  {step.pos}
+                  {item.pos}
                 </span>
                 <h3 className="fc-display text-[clamp(2.75rem,4.6vw,4.5rem)] md:col-span-5">
-                  {step.title}
+                  {item.title}
                 </h3>
                 <p className="max-w-xl leading-relaxed text-[var(--fc-dim)] md:col-span-4">
-                  {step.body}
+                  {item.body}
                 </p>
-                <span className="fc-mono fc-faint md:col-span-2 md:text-right">{step.where}</span>
+                <span className="fc-mono fc-faint md:col-span-2 md:text-right">{item.where}</span>
               </li>
             ))}
           </ol>
@@ -337,11 +283,12 @@ function Landing() {
                 context.
               </h2>
               <p className="mt-8 max-w-sm leading-relaxed text-[var(--fc-dim)]">
-                Where available, tracks carry their release, label, BPM and key — plus every set and
-                mix they've turned up in. Your library remembers where you found things, not just
-                what they're called.
+                Where available, tracks carry their artist, release, label and year — and the links
+                out to everything around them. Your library remembers where things came from, not
+                just what they're called.
               </p>
-              <div className="fc-mono fc-dim mt-10 flex flex-wrap items-center gap-x-2 gap-y-2">
+              <p className="fc-mono fc-faint mt-10">One thread through this crate</p>
+              <div className="fc-mono fc-dim mt-3 flex flex-wrap items-center gap-x-2 gap-y-2">
                 {THREAD.map((node, i) => (
                   <span key={node} className="flex items-center gap-2">
                     {i > 0 && <span className="fc-coral">→</span>}
@@ -356,20 +303,20 @@ function Landing() {
                 <div className="fc-rule flex flex-wrap items-baseline justify-between gap-3 border-b px-5 py-4">
                   <div className="flex items-baseline gap-4">
                     <span className="fc-mono fc-faint">Crate</span>
-                    <span className="fc-condensed text-2xl">04:00 / Warehouse</span>
+                    <span className="fc-condensed text-2xl">90s Techno / Essentials</span>
                   </div>
-                  <span className="fc-mono fc-faint">6 tracks · 128–133 BPM · Example</span>
+                  <span className="fc-mono fc-faint">
+                    {EXAMPLE_CRATE.length} records · 1990–1999
+                  </span>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[40rem] text-left">
+                  <table className="w-full min-w-[36rem] text-left">
                     <thead>
                       <tr className="fc-mono fc-faint fc-rule border-b">
                         <th className="px-5 py-3 font-normal">#</th>
                         <th className="py-3 pr-4 font-normal">Track</th>
                         <th className="py-3 pr-4 font-normal">Label</th>
-                        <th className="py-3 pr-4 text-right font-normal">BPM</th>
-                        <th className="py-3 pr-4 text-right font-normal">Key</th>
-                        <th className="py-3 pr-5 text-right font-normal">Seen in sets</th>
+                        <th className="py-3 pr-5 text-right font-normal">Year</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -383,23 +330,13 @@ function Landing() {
                             <div className="text-sm text-[var(--fc-dim)]">{t.artist}</div>
                           </td>
                           <td className="fc-mono fc-dim py-4 pr-4">{t.label}</td>
-                          <td className="py-4 pr-4 text-right fc-num">{t.bpm}</td>
-                          <td className="py-4 pr-4 text-right fc-num">{t.key}</td>
-                          <td className="py-4 pr-5">
-                            <div className="flex items-center justify-end gap-3">
-                              <SetMeter count={t.sets} />
-                              <span className="w-6 text-right fc-num">{t.sets}</span>
-                            </div>
-                          </td>
+                          <td className="py-4 pr-5 text-right fc-num">{t.year}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               </div>
-              <p className="fc-mono fc-faint mt-3">
-                Illustrative crate — artists and labels are fictional.
-              </p>
             </div>
           </div>
         </section>
@@ -418,15 +355,6 @@ function Landing() {
                 </article>
               ))}
             </div>
-
-            <div className="fc-rule mt-16 grid gap-4 border-t pt-6 lg:grid-cols-12 lg:gap-8">
-              <p className="fc-mono fc-faint lg:col-span-4">Forthcoming</p>
-              <p className="max-w-2xl leading-relaxed text-[var(--fc-dim)] lg:col-span-8">
-                Next: log the sets you hear, track your own practice sessions, and map the
-                connections between artists, labels, and generations. This first slice is the
-                collection — the rest is the world around it.
-              </p>
-            </div>
           </div>
         </section>
 
@@ -435,15 +363,15 @@ function Landing() {
             <div className="min-w-0 lg:col-span-8">
               <p className="fc-mono fc-dim">Follow the thread</p>
               <h2 className="fc-display mt-6 text-[clamp(3rem,9.6vw,9rem)]">
-                Build toward
+                Keep
                 <br />
-                <span className="fc-coral">the set.</span>
+                <span className="fc-coral">digging.</span>
               </h2>
             </div>
             <div className="flex flex-col gap-8 self-end lg:col-span-4">
               <p className="max-w-sm leading-relaxed text-[var(--fc-dim)]">
-                Save the records worth remembering. Sort them into crates. Come back with something
-                you can play.
+                Every record points somewhere else — another artist, another label, another city,
+                another scene. FlowCrate helps you keep following.
               </p>
               <div className="flex flex-wrap items-center gap-x-8 gap-y-5">
                 <Link to={entry} className="fc-btn">
@@ -470,20 +398,5 @@ function Landing() {
         </div>
       </footer>
     </div>
-  );
-}
-
-function SetMeter({ count }: { count: number }) {
-  const lit = Math.min(8, Math.ceil(count / 4));
-  return (
-    <span className="fc-meter" aria-hidden>
-      {Array.from({ length: 8 }, (_, i) => (
-        <span
-          key={i}
-          style={{ height: `${40 + i * 8}%` }}
-          {...(i < lit ? { "data-on": "" } : {})}
-        />
-      ))}
-    </span>
   );
 }
