@@ -215,18 +215,13 @@ function Landing() {
                 Follow the links between artists, labels, DJs and scenes, keep what you find, and
                 sort it in a way that makes sense to you.
               </p>
-              <div className="flex flex-wrap items-center gap-x-8 gap-y-5">
+              <div>
                 <Link to={entry} className="fc-btn">
                   {signedIn ? "Open FlowCrate" : "Start building your crate"}
                   <span aria-hidden className="fc-btn-arrow">
                     →
                   </span>
                 </Link>
-                {!signedIn && (
-                  <Link to="/auth" className="fc-link">
-                    I have an account
-                  </Link>
-                )}
               </div>
               <ol className="fc-rule mt-auto hidden border-t lg:block">
                 {FLOW.map((item) => (
