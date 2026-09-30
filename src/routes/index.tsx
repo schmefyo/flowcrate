@@ -67,6 +67,8 @@ const EXAMPLE_CRATE = [
     title: "Energy Flash",
     label: "R&S Records",
     year: 1990,
+    bpm: 123,
+    key: "4B",
     seenInSets: 29,
   },
   {
@@ -74,6 +76,8 @@ const EXAMPLE_CRATE = [
     title: "Spastik",
     label: "NovaMute / Plus 8",
     year: 1993,
+    bpm: 126,
+    key: "5B",
     seenInSets: 24,
   },
   {
@@ -81,6 +85,8 @@ const EXAMPLE_CRATE = [
     title: "Phylyps Trak",
     label: "Basic Channel",
     year: 1993,
+    bpm: 144,
+    key: "6A",
     seenInSets: 14,
   },
   {
@@ -88,15 +94,35 @@ const EXAMPLE_CRATE = [
     title: "Wisdom To The Wise (Red 2)",
     label: "Bush",
     year: 1994,
+    bpm: 143,
+    key: "4A",
     seenInSets: 19,
   },
-  { artist: "Green Velvet", title: "Flash", label: "Relief Records", year: 1995, seenInSets: 22 },
-  { artist: "Jeff Mills", title: "The Bells", label: "Purpose Maker", year: 1996, seenInSets: 32 },
+  {
+    artist: "Green Velvet",
+    title: "Flash",
+    label: "Relief Records",
+    year: 1995,
+    bpm: 128,
+    key: "7A",
+    seenInSets: 22,
+  },
+  {
+    artist: "Jeff Mills",
+    title: "The Bells",
+    label: "Purpose Maker",
+    year: 1996,
+    bpm: 138,
+    key: "8A",
+    seenInSets: 32,
+  },
   {
     artist: "DJ Rolando",
     title: "Knights of the Jaguar",
     label: "Underground Resistance",
     year: 1999,
+    bpm: 138,
+    key: "7A",
     seenInSets: 27,
   },
 ];
@@ -325,13 +351,21 @@ function Landing() {
                   </span>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[42rem] text-left">
+                  <table className="w-full text-left sm:min-w-[46rem]">
                     <thead>
                       <tr className="fc-mono fc-faint fc-rule border-b">
                         <th className="px-5 py-3 font-normal">#</th>
                         <th className="py-3 pr-4 font-normal">Track</th>
-                        <th className="py-3 pr-4 font-normal">Label</th>
-                        <th className="py-3 pr-4 text-right font-normal">Year</th>
+                        <th className="hidden py-3 pr-4 font-normal sm:table-cell">Label</th>
+                        <th className="hidden py-3 pr-4 text-right font-normal sm:table-cell">
+                          Year
+                        </th>
+                        <th className="hidden py-3 pr-4 text-right font-normal sm:table-cell">
+                          BPM
+                        </th>
+                        <th className="hidden py-3 pr-4 text-right font-normal sm:table-cell">
+                          Key
+                        </th>
                         <th className="py-3 pr-5 text-right font-normal">Seen in sets</th>
                       </tr>
                     </thead>
@@ -344,9 +378,25 @@ function Landing() {
                           <td className="py-4 pr-4">
                             <div className="font-semibold">{t.title}</div>
                             <div className="text-sm text-[var(--fc-dim)]">{t.artist}</div>
+                            <div className="fc-mono fc-faint mt-2 space-y-1 sm:hidden">
+                              <div>{t.label}</div>
+                              <div>
+                                {t.year} · {t.bpm} BPM · {t.key}
+                              </div>
+                            </div>
                           </td>
-                          <td className="fc-mono fc-dim py-4 pr-4">{t.label}</td>
-                          <td className="py-4 pr-4 text-right fc-num">{t.year}</td>
+                          <td className="fc-mono fc-dim hidden py-4 pr-4 sm:table-cell">
+                            {t.label}
+                          </td>
+                          <td className="fc-num hidden py-4 pr-4 text-right sm:table-cell">
+                            {t.year}
+                          </td>
+                          <td className="fc-num hidden py-4 pr-4 text-right sm:table-cell">
+                            {t.bpm}
+                          </td>
+                          <td className="fc-num hidden py-4 pr-4 text-right sm:table-cell">
+                            {t.key}
+                          </td>
                           <td className="py-4 pr-5">
                             <div className="flex justify-end">
                               <SetMeter count={t.seenInSets} />
