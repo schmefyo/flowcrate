@@ -55,27 +55,51 @@ const FLOW = [
   {
     pos: "B2",
     title: "Crate",
-    body: "Sort your finds by sound, scene, label, era or feeling. Some crates stay personal archives; some end up in the bag for Saturday.",
-    where: "Crates",
+    body: "Sort your finds by sound, scene, label, era or feeling. Some crates stay personal archives — and some, eventually, become sets.",
+    where: "Crates · Sets, later",
   },
 ];
 
+// seenInSets values are illustrative, not real counts.
 const EXAMPLE_CRATE = [
-  { artist: "Joey Beltram", title: "Energy Flash", label: "R&S Records", year: 1990 },
-  { artist: "Plastikman", title: "Spastik", label: "NovaMute / Plus 8", year: 1993 },
-  { artist: "Basic Channel", title: "Phylyps Trak", label: "Basic Channel", year: 1993 },
-  { artist: "Dave Clarke", title: "Wisdom To The Wise (Red 2)", label: "Bush", year: 1994 },
-  { artist: "Green Velvet", title: "Flash", label: "Relief Records", year: 1995 },
-  { artist: "Jeff Mills", title: "The Bells", label: "Purpose Maker", year: 1996 },
+  {
+    artist: "Joey Beltram",
+    title: "Energy Flash",
+    label: "R&S Records",
+    year: 1990,
+    seenInSets: 29,
+  },
+  {
+    artist: "Plastikman",
+    title: "Spastik",
+    label: "NovaMute / Plus 8",
+    year: 1993,
+    seenInSets: 24,
+  },
+  {
+    artist: "Basic Channel",
+    title: "Phylyps Trak",
+    label: "Basic Channel",
+    year: 1993,
+    seenInSets: 14,
+  },
+  {
+    artist: "Dave Clarke",
+    title: "Wisdom To The Wise (Red 2)",
+    label: "Bush",
+    year: 1994,
+    seenInSets: 19,
+  },
+  { artist: "Green Velvet", title: "Flash", label: "Relief Records", year: 1995, seenInSets: 22 },
+  { artist: "Jeff Mills", title: "The Bells", label: "Purpose Maker", year: 1996, seenInSets: 32 },
   {
     artist: "DJ Rolando",
     title: "Knights of the Jaguar",
     label: "Underground Resistance",
     year: 1999,
+    seenInSets: 27,
   },
 ];
-
-const THREAD = ["The Bells", "Jeff Mills", "Underground Resistance", "Knights of the Jaguar"];
 
 const FEATURES = [
   {
@@ -287,15 +311,6 @@ function Landing() {
                 out to everything around them. Your library remembers where things came from, not
                 just what they're called.
               </p>
-              <p className="fc-mono fc-faint mt-10">One thread through this crate</p>
-              <div className="fc-mono fc-dim mt-3 flex flex-wrap items-center gap-x-2 gap-y-2">
-                {THREAD.map((node, i) => (
-                  <span key={node} className="flex items-center gap-2">
-                    {i > 0 && <span className="fc-coral">→</span>}
-                    <span>{node}</span>
-                  </span>
-                ))}
-              </div>
             </div>
 
             <div className="min-w-0 lg:col-span-8">
@@ -310,13 +325,14 @@ function Landing() {
                   </span>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[36rem] text-left">
+                  <table className="w-full min-w-[42rem] text-left">
                     <thead>
                       <tr className="fc-mono fc-faint fc-rule border-b">
                         <th className="px-5 py-3 font-normal">#</th>
                         <th className="py-3 pr-4 font-normal">Track</th>
                         <th className="py-3 pr-4 font-normal">Label</th>
-                        <th className="py-3 pr-5 text-right font-normal">Year</th>
+                        <th className="py-3 pr-4 text-right font-normal">Year</th>
+                        <th className="py-3 pr-5 text-right font-normal">Seen in sets</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -330,7 +346,12 @@ function Landing() {
                             <div className="text-sm text-[var(--fc-dim)]">{t.artist}</div>
                           </td>
                           <td className="fc-mono fc-dim py-4 pr-4">{t.label}</td>
-                          <td className="py-4 pr-5 text-right fc-num">{t.year}</td>
+                          <td className="py-4 pr-4 text-right fc-num">{t.year}</td>
+                          <td className="py-4 pr-5">
+                            <div className="flex justify-end">
+                              <SetMeter count={t.seenInSets} />
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -359,32 +380,28 @@ function Landing() {
         </section>
 
         <section className="fc-rule border-t">
-          <div className="mx-auto grid max-w-[88rem] gap-12 px-5 py-20 sm:px-8 sm:py-32 lg:grid-cols-12 lg:gap-8">
+          <div className="mx-auto grid max-w-[88rem] gap-14 px-5 py-20 sm:px-8 sm:py-32 lg:grid-cols-12 lg:gap-8">
             <div className="min-w-0 lg:col-span-8">
               <p className="fc-mono fc-dim">Follow the thread</p>
-              <h2 className="fc-display mt-6 text-[clamp(3rem,9.6vw,9rem)]">
+              <h2 className="fc-display mt-6 text-[clamp(3.4rem,10vw,9rem)]">
                 Keep
                 <br />
                 <span className="fc-coral">digging.</span>
               </h2>
             </div>
-            <div className="flex flex-col gap-8 self-end lg:col-span-4">
-              <p className="max-w-sm leading-relaxed text-[var(--fc-dim)]">
+
+            <div className="flex min-w-0 flex-col gap-10 self-end lg:col-span-4">
+              <p className="max-w-md leading-relaxed text-[var(--fc-dim)]">
                 Every record points somewhere else — another artist, another label, another city,
                 another scene. FlowCrate helps you keep following.
               </p>
-              <div className="flex flex-wrap items-center gap-x-8 gap-y-5">
+              <div>
                 <Link to={entry} className="fc-btn">
-                  {signedIn ? "Open FlowCrate" : "Start building your crate"}
+                  {signedIn ? "Open FlowCrate" : "Start digging"}
                   <span aria-hidden className="fc-btn-arrow">
                     →
                   </span>
                 </Link>
-                {!signedIn && (
-                  <Link to="/auth" className="fc-link">
-                    Sign in
-                  </Link>
-                )}
               </div>
             </div>
           </div>
@@ -398,5 +415,20 @@ function Landing() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function SetMeter({ count }: { count: number }) {
+  const lit = Math.min(8, Math.ceil(count / 4));
+  return (
+    <span className="fc-meter" aria-hidden>
+      {Array.from({ length: 8 }, (_, i) => (
+        <span
+          key={i}
+          style={{ height: `${40 + i * 8}%` }}
+          {...(i < lit ? { "data-on": "" } : {})}
+        />
+      ))}
+    </span>
   );
 }
