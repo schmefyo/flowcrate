@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import heroImage from "@/assets/hero-club.jpg";
-import { Button } from "@/components/ui/button";
+import landingCss from "@/components/landing/landing.css?url";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
@@ -22,31 +22,143 @@ export const Route = createFileRoute("/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
+    links: [
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap",
+      },
+      { rel: "stylesheet", href: landingCss },
+    ],
   }),
   component: Landing,
 });
 
+const FLOW = [
+  {
+    pos: "A1",
+    title: "Discover",
+    body: "Start with a DJ whose taste you trust, a set you love, or a track already in your library. See who's playing it, how often it turns up across mixes, and what sits next to it.",
+    where: "Discover · Radar · DJs & Artists",
+  },
+  {
+    pos: "A2",
+    title: "Save",
+    body: "Pull it into your library. Artist, release, label, BPM, key and the sets it has appeared in — context attached wherever it exists.",
+    where: "Tracks",
+  },
+  {
+    pos: "B1",
+    title: "Crate",
+    body: "Group by sound, room or hour of the night. Openers, peak-time weapons, late-night energy — or categories that only make sense to you.",
+    where: "Crates",
+  },
+  {
+    pos: "B2",
+    title: "Set",
+    body: "Turn loose digging into something you can play. Find sets that match your crates and fill the gaps with what comes next.",
+    where: "Crate matches · Set building in progress",
+  },
+];
+
+const EXAMPLE_CRATE = [
+  {
+    artist: "Kessler Unit",
+    title: "Sodium Hours",
+    label: "Nachtform",
+    bpm: 128,
+    key: "5A",
+    sets: 23,
+  },
+  {
+    artist: "Ines Varga",
+    title: "Concrete Choir",
+    label: "Tieflicht",
+    bpm: 129,
+    key: "6A",
+    sets: 17,
+  },
+  {
+    artist: "Mørk Tape",
+    title: "Pressure Drop (Dub)",
+    label: "Haze Loops",
+    bpm: 130,
+    key: "6A",
+    sets: 31,
+  },
+  {
+    artist: "D. Achterberg",
+    title: "Ring Road",
+    label: "Stahlwerk",
+    bpm: 131,
+    key: "7A",
+    sets: 12,
+  },
+  {
+    artist: "Lumo Field",
+    title: "Subway Interlude",
+    label: "Lowfreq Archive",
+    bpm: 132,
+    key: "8A",
+    sets: 9,
+  },
+  {
+    artist: "Oyelaran",
+    title: "Ninety Nine Steps",
+    label: "Outer Ring",
+    bpm: 133,
+    key: "8A",
+    sets: 26,
+  },
+];
+
+const THREAD = [
+  "Track",
+  "Played by 14 DJs",
+  "Room 2 closing set",
+  "Label: Nachtform",
+  "Next record",
+];
+
 const FEATURES = [
   {
-    kicker: "01 / Tracks",
+    no: "01",
+    kicker: "Tracks",
     title: "Save what moves you",
     body: "Artist, label, BPM, key, mood tags and an energy rating — every record you dig up, searchable in seconds.",
   },
   {
-    kicker: "02 / Crates",
+    no: "02",
+    kicker: "Crates",
     title: "Crates for every mood",
     body: "Group tracks by feeling, room or hour of the night. Openers, peak-time weapons, and late-night energy.",
   },
   {
-    kicker: "03 / Labels",
+    no: "03",
+    kicker: "Labels",
     title: "Follow the crews",
     body: "Follow labels, collectives, and parties, where they come from and the tracks they gave you.",
   },
   {
-    kicker: "04 / Discover",
+    no: "04",
+    kicker: "Discover",
     title: "Find what comes next",
     body: "See which DJs play your tracks, find sets that match your crates, and fill the gaps with what comes next.",
   },
+];
+
+const SCENES = [
+  "Techno",
+  "Electro",
+  "Dub techno",
+  "Breaks",
+  "UK garage",
+  "Deep house",
+  "EBM",
+  "Ambient",
+  "Minimal",
+  "Jungle",
+  "Acid",
+  "Leftfield",
 ];
 
 function Landing() {
@@ -56,65 +168,322 @@ function Landing() {
     supabase.auth.getSession().then(({ data }) => setSignedIn(Boolean(data.session)));
   }, []);
 
+  const entry = signedIn ? "/tracks" : "/auth";
+
   return (
-    <div className="min-h-screen">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-6">
-        <span className="label-mono text-primary">FLOWCRATE</span>
-        <Button variant="ghost" size="sm" asChild>
-          <Link to={signedIn ? "/tracks" : "/auth"}>{signedIn ? "Open FlowCrate" : "Sign in"}</Link>
-        </Button>
+    <div className="fc-landing">
+      <header className="fc-rule border-b">
+        <div className="mx-auto flex max-w-[88rem] items-center justify-between gap-6 px-5 py-4 sm:px-8">
+          <Link to="/" className="flex items-baseline gap-3">
+            <span className="fc-display text-xl tracking-[-0.02em]">Flowcrate</span>
+            <span className="fc-mono fc-faint hidden sm:inline">FC—001</span>
+          </Link>
+          <div aria-hidden className="fc-mono fc-dim hidden items-center gap-3 md:flex">
+            <span>Discover</span>
+            <span className="fc-faint">/</span>
+            <span>Save</span>
+            <span className="fc-faint">/</span>
+            <span>Crate</span>
+            <span className="fc-faint">/</span>
+            <span>Set</span>
+          </div>
+          <Link to={entry} className="fc-link">
+            {signedIn ? "Open FlowCrate" : "Sign in"}
+          </Link>
+        </div>
       </header>
 
-      <section className="relative overflow-hidden border-y border-border">
-        <img
-          src={heroImage}
-          alt="Blurred silhouettes dancing in a basement club under green and magenta light"
-          width={1600}
-          height={912}
-          className="absolute inset-0 h-full w-full object-cover opacity-45"
-        />
-        <div className="relative mx-auto max-w-6xl px-5 py-28 sm:py-40">
-          <p className="label-mono text-accent">FOR DJS, DIGGERS, & OBSESSIVE LISTENERS</p>
-          <h1 className="mt-6 max-w-3xl text-5xl font-bold leading-[1.05] sm:text-7xl">
-            Know your music. <span className="text-gradient-acid">Find what's next.</span>
+      <main>
+        <section className="mx-auto max-w-[88rem] px-5 pt-10 sm:px-8 sm:pt-14">
+          <div className="fc-mono fc-dim fc-rule grid gap-2 border-b pb-4 sm:grid-cols-3">
+            <span>For DJs, diggers & obsessive listeners</span>
+            <span className="sm:text-center">Music discovery / record box</span>
+            <span className="sm:text-right">
+              Discover <span className="fc-coral">→</span> Save <span className="fc-coral">→</span>{" "}
+              Crate <span className="fc-coral">→</span> Set
+            </span>
+          </div>
+
+          <h1 className="fc-display mt-8 text-[clamp(3.1rem,11.6vw,11.5rem)] sm:mt-10">
+            Dig deeper.
+            <br />
+            Save what
+            <br />
+            you <span className="fc-outline">find.</span>
           </h1>
-          <p className="mt-6 max-w-xl text-lg text-muted-foreground">
-            FlowCrate is your personal music brain. Capture what you discover, organize it by mood,
-            energy, and context, and follow the connections to find what's next.
-          </p>
-          <div className="mt-10 flex flex-wrap gap-3">
-            <Button size="lg" asChild>
-              <Link to={signedIn ? "/tracks" : "/auth"}>
-                {signedIn ? "Open FlowCrate" : "Start Building Your Crate →"}
-              </Link>
-            </Button>
+
+          <div className="mt-12 grid gap-10 pb-16 lg:grid-cols-12 lg:gap-8 lg:pb-24">
+            <div className="flex flex-col gap-10 lg:col-span-4">
+              <p className="max-w-md text-lg leading-relaxed text-[var(--fc-dim)]">
+                <span className="text-[var(--fc-paper)]">
+                  FlowCrate is your personal music brain.
+                </span>{" "}
+                Follow the connections between tracks, DJs, sets and labels — then capture what you
+                find and sort it by mood, energy and context until it's ready to play.
+              </p>
+              <div className="flex flex-wrap items-center gap-x-8 gap-y-5">
+                <Link to={entry} className="fc-btn">
+                  {signedIn ? "Open FlowCrate" : "Start building your crate"}
+                  <span aria-hidden className="fc-btn-arrow">
+                    →
+                  </span>
+                </Link>
+                {!signedIn && (
+                  <Link to="/auth" className="fc-link">
+                    I have an account
+                  </Link>
+                )}
+              </div>
+              <ol className="fc-rule mt-auto hidden border-t lg:block">
+                {FLOW.map((step) => (
+                  <li
+                    key={step.pos}
+                    className="fc-rule flex items-baseline justify-between gap-4 border-b py-2.5"
+                  >
+                    <span className="flex items-baseline gap-4">
+                      <span className="fc-mono fc-coral">{step.pos}</span>
+                      <span className="fc-condensed text-lg">{step.title}</span>
+                    </span>
+                    <span className="fc-mono fc-faint text-right">
+                      {step.where.split(" · ")[0]}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <figure className="lg:col-span-8">
+              <div className="fc-duotone aspect-[16/9]">
+                <img
+                  src={heroImage}
+                  alt="Blurred silhouettes dancing in a basement club under green and magenta light"
+                  width={1600}
+                  height={912}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <figcaption className="fc-mono fc-faint fc-rule mt-3 flex justify-between gap-4 border-t pt-3">
+                <span>Fig. 01 — Basement, 04:12</span>
+                <span>Where the good records come from</span>
+              </figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <div className="fc-rule overflow-hidden border-y py-3" aria-hidden>
+          <div className="fc-ticker">
+            {[0, 1].map((copy) => (
+              <div key={copy} className="flex shrink-0">
+                {SCENES.map((scene) => (
+                  <span
+                    key={scene}
+                    className="fc-condensed fc-dim flex items-center text-2xl sm:text-3xl"
+                  >
+                    <span className="px-6">{scene}</span>
+                    <span className="fc-coral text-base">✕</span>
+                  </span>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
-      </section>
 
-      <section className="mx-auto max-w-6xl px-5 py-24">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURES.map((f) => (
-            <article key={f.kicker} className="rounded-md border border-border bg-card p-6">
-              <p className="label-mono text-primary">{f.kicker}</p>
-              <h2 className="mt-3 text-xl font-semibold">{f.title}</h2>
-              <p className="mt-3 text-sm text-muted-foreground">{f.body}</p>
-            </article>
-          ))}
-        </div>
+        <section className="mx-auto max-w-[88rem] px-5 py-20 sm:px-8 sm:py-28">
+          <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
+            <div className="min-w-0 lg:col-span-4">
+              <p className="fc-mono fc-coral">The flow · Side A / Side B</p>
+              <h2 className="fc-display mt-5 text-[clamp(2.4rem,10vw,3.75rem)]">
+                From the floor
+                <br />
+                to the set.
+              </h2>
+            </div>
+            <p className="max-w-lg self-end text-lg leading-relaxed text-[var(--fc-dim)] lg:col-span-6 lg:col-start-7">
+              Digging starts loose — a track ID from a mix, a label someone mentioned, a DJ you keep
+              coming back to. FlowCrate gives each step somewhere to go.
+            </p>
+          </div>
 
-        <p className="mt-16 max-w-2xl text-sm text-muted-foreground">
-          Next: log the sets you hear, track your own practice sessions, and
-          map the connections between artists, labels, and generations. This first slice is the
-          collection — the rest is the world around it.
-        </p>
-      </section>
+          <ol className="fc-rule mt-14 border-t">
+            {FLOW.map((step) => (
+              <li
+                key={step.pos}
+                className="fc-side-row fc-rule grid gap-4 border-b py-8 md:grid-cols-12 md:items-baseline md:gap-8 md:py-10"
+              >
+                <span className="fc-side-pos fc-mono fc-faint text-sm md:col-span-1">
+                  {step.pos}
+                </span>
+                <h3 className="fc-display text-[clamp(2.75rem,4.6vw,4.5rem)] md:col-span-5">
+                  {step.title}
+                </h3>
+                <p className="max-w-xl leading-relaxed text-[var(--fc-dim)] md:col-span-4">
+                  {step.body}
+                </p>
+                <span className="fc-mono fc-faint md:col-span-2 md:text-right">{step.where}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
 
-      <footer className="border-t border-border">
-        <div className="mx-auto max-w-6xl px-5 py-8 label-mono text-muted-foreground">
-          Built for the dancefloor · everything you save is private to you
+        <section className="fc-rule border-t bg-[var(--fc-ink-2)]">
+          <div className="mx-auto grid max-w-[88rem] gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-12 lg:gap-8">
+            <div className="min-w-0 lg:col-span-4">
+              <p className="fc-mono fc-coral">Inside a crate</p>
+              <h2 className="fc-display mt-5 text-[clamp(2.4rem,10vw,3.75rem)]">
+                Every record
+                <br />
+                keeps its
+                <br />
+                context.
+              </h2>
+              <p className="mt-8 max-w-sm leading-relaxed text-[var(--fc-dim)]">
+                Where available, tracks carry their release, label, BPM and key — plus every set and
+                mix they've turned up in. Your library remembers where you found things, not just
+                what they're called.
+              </p>
+              <div className="fc-mono fc-dim mt-10 flex flex-wrap items-center gap-x-2 gap-y-2">
+                {THREAD.map((node, i) => (
+                  <span key={node} className="flex items-center gap-2">
+                    {i > 0 && <span className="fc-coral">→</span>}
+                    <span>{node}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="min-w-0 lg:col-span-8">
+              <div className="fc-rule border bg-[var(--fc-ink)]">
+                <div className="fc-rule flex flex-wrap items-baseline justify-between gap-3 border-b px-5 py-4">
+                  <div className="flex items-baseline gap-4">
+                    <span className="fc-mono fc-faint">Crate</span>
+                    <span className="fc-condensed text-2xl">04:00 / Warehouse</span>
+                  </div>
+                  <span className="fc-mono fc-faint">6 tracks · 128–133 BPM · Example</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[40rem] text-left">
+                    <thead>
+                      <tr className="fc-mono fc-faint fc-rule border-b">
+                        <th className="px-5 py-3 font-normal">#</th>
+                        <th className="py-3 pr-4 font-normal">Track</th>
+                        <th className="py-3 pr-4 font-normal">Label</th>
+                        <th className="py-3 pr-4 text-right font-normal">BPM</th>
+                        <th className="py-3 pr-4 text-right font-normal">Key</th>
+                        <th className="py-3 pr-5 text-right font-normal">Seen in sets</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {EXAMPLE_CRATE.map((t, i) => (
+                        <tr key={t.title} className="fc-crate-row fc-rule border-b last:border-b-0">
+                          <td className="fc-mono fc-faint px-5 py-4 align-top">
+                            {String(i + 1).padStart(2, "0")}
+                          </td>
+                          <td className="py-4 pr-4">
+                            <div className="font-semibold">{t.title}</div>
+                            <div className="text-sm text-[var(--fc-dim)]">{t.artist}</div>
+                          </td>
+                          <td className="fc-mono fc-dim py-4 pr-4">{t.label}</td>
+                          <td className="py-4 pr-4 text-right fc-num">{t.bpm}</td>
+                          <td className="py-4 pr-4 text-right fc-num">{t.key}</td>
+                          <td className="py-4 pr-5">
+                            <div className="flex items-center justify-end gap-3">
+                              <SetMeter count={t.sets} />
+                              <span className="w-6 text-right fc-num">{t.sets}</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <p className="fc-mono fc-faint mt-3">
+                Illustrative crate — artists and labels are fictional.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="fc-rule border-t">
+          <div className="mx-auto max-w-[88rem] px-5 py-20 sm:px-8 sm:py-28">
+            <p className="fc-mono fc-coral">Liner notes</p>
+            <div className="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+              {FEATURES.map((f) => (
+                <article key={f.no} className="fc-rule border-t pt-5">
+                  <p className="fc-mono fc-faint">
+                    {f.no} / {f.kicker}
+                  </p>
+                  <h3 className="fc-condensed mt-4 text-3xl leading-none">{f.title}</h3>
+                  <p className="mt-4 leading-relaxed text-[var(--fc-dim)]">{f.body}</p>
+                </article>
+              ))}
+            </div>
+
+            <div className="fc-rule mt-16 grid gap-4 border-t pt-6 lg:grid-cols-12 lg:gap-8">
+              <p className="fc-mono fc-faint lg:col-span-4">Forthcoming</p>
+              <p className="max-w-2xl leading-relaxed text-[var(--fc-dim)] lg:col-span-8">
+                Next: log the sets you hear, track your own practice sessions, and map the
+                connections between artists, labels, and generations. This first slice is the
+                collection — the rest is the world around it.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="fc-rule border-t">
+          <div className="mx-auto grid max-w-[88rem] gap-12 px-5 py-20 sm:px-8 sm:py-32 lg:grid-cols-12 lg:gap-8">
+            <div className="min-w-0 lg:col-span-8">
+              <p className="fc-mono fc-dim">Follow the thread</p>
+              <h2 className="fc-display mt-6 text-[clamp(3rem,9.6vw,9rem)]">
+                Build toward
+                <br />
+                <span className="fc-coral">the set.</span>
+              </h2>
+            </div>
+            <div className="flex flex-col gap-8 self-end lg:col-span-4">
+              <p className="max-w-sm leading-relaxed text-[var(--fc-dim)]">
+                Save the records worth remembering. Sort them into crates. Come back with something
+                you can play.
+              </p>
+              <div className="flex flex-wrap items-center gap-x-8 gap-y-5">
+                <Link to={entry} className="fc-btn">
+                  {signedIn ? "Open FlowCrate" : "Start building your crate"}
+                  <span aria-hidden className="fc-btn-arrow">
+                    →
+                  </span>
+                </Link>
+                {!signedIn && (
+                  <Link to="/auth" className="fc-link">
+                    Sign in
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="fc-rule border-t">
+        <div className="fc-mono fc-faint mx-auto flex max-w-[88rem] flex-wrap justify-between gap-3 px-5 py-6 sm:px-8">
+          <span>Built for the dancefloor · everything you save is private to you</span>
+          <span>FlowCrate — independent, in active development</span>
         </div>
       </footer>
     </div>
+  );
+}
+
+function SetMeter({ count }: { count: number }) {
+  const lit = Math.min(8, Math.ceil(count / 4));
+  return (
+    <span className="fc-meter" aria-hidden>
+      {Array.from({ length: 8 }, (_, i) => (
+        <span
+          key={i}
+          style={{ height: `${40 + i * 8}%` }}
+          {...(i < lit ? { "data-on": "" } : {})}
+        />
+      ))}
+    </span>
   );
 }
