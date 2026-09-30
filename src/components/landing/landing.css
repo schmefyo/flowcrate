@@ -1,0 +1,230 @@
+/*
+ * Landing-page-only styles. Loaded exclusively by the "/" route via its head()
+ * links, and every rule is nested under .fc-landing so nothing leaks into the
+ * authenticated app.
+ */
+
+.fc-landing {
+  --fc-ink: oklch(0.12 0.004 40);
+  --fc-ink-2: oklch(0.155 0.005 40);
+  --fc-paper: oklch(0.94 0.008 75);
+  --fc-dim: oklch(0.66 0.01 60);
+  --fc-faint: oklch(0.42 0.008 50);
+  --fc-rule: oklch(0.27 0.006 45);
+  --fc-coral: oklch(0.7 0.2 29);
+  --fc-coral-ink: oklch(0.14 0.02 30);
+  --fc-display: "Archivo", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
+  --fc-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  overflow-x: clip;
+  background-color: var(--fc-ink);
+  color: var(--fc-paper);
+  font-family: var(--fc-display);
+  font-stretch: 100%;
+  -webkit-font-smoothing: antialiased;
+
+  /* Print-like grain so the black reads as paper, not a flat screen. */
+  &::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.07;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  & h1,
+  & h2,
+  & h3 {
+    font-family: var(--fc-display);
+    letter-spacing: normal;
+  }
+
+  & ::selection {
+    background: var(--fc-coral);
+    color: var(--fc-coral-ink);
+  }
+
+  & :focus-visible {
+    outline: 2px solid var(--fc-coral);
+    outline-offset: 3px;
+  }
+
+  & .fc-display {
+    font-family: var(--fc-display);
+    font-stretch: 125%;
+    font-weight: 800;
+    text-transform: uppercase;
+    line-height: 0.84;
+    letter-spacing: -0.035em;
+  }
+
+  & .fc-condensed {
+    font-family: var(--fc-display);
+    font-stretch: 70%;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+  }
+
+  & .fc-mono {
+    font-family: var(--fc-mono);
+    font-size: 0.7rem;
+    line-height: 1.5;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  & .fc-num {
+    font-family: var(--fc-mono);
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  & .fc-rule {
+    border-color: var(--fc-rule);
+  }
+
+  & .fc-coral {
+    color: var(--fc-coral);
+  }
+
+  & .fc-dim {
+    color: var(--fc-dim);
+  }
+
+  & .fc-faint {
+    color: var(--fc-faint);
+  }
+
+  /* Hollow type for the second half of a headline. */
+  & .fc-outline {
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--fc-paper);
+  }
+
+  & .fc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1.05rem 1.4rem;
+    background: var(--fc-coral);
+    color: var(--fc-coral-ink);
+    font-family: var(--fc-mono);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+
+    &:hover {
+      background: var(--fc-paper);
+    }
+
+    & .fc-btn-arrow {
+      transition: transform 150ms ease;
+    }
+
+    &:hover .fc-btn-arrow {
+      transform: translateX(4px);
+    }
+  }
+
+  & .fc-link {
+    font-family: var(--fc-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fc-paper);
+    text-decoration: underline;
+    text-decoration-color: var(--fc-faint);
+    text-underline-offset: 6px;
+    transition: text-decoration-color 150ms ease;
+
+    &:hover {
+      text-decoration-color: var(--fc-coral);
+    }
+  }
+
+  /* Single-ink coral duotone: black stays black, highlights print coral. */
+  & .fc-duotone {
+    position: relative;
+    overflow: hidden;
+    background: var(--fc-ink);
+
+    & img {
+      filter: grayscale(1) contrast(1.35) brightness(0.95);
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: var(--fc-coral);
+      mix-blend-mode: multiply;
+    }
+  }
+
+  & .fc-side-row {
+    transition: background-color 200ms ease;
+
+    & .fc-side-pos {
+      transition: color 200ms ease;
+    }
+
+    &:hover {
+      background: var(--fc-ink-2);
+    }
+
+    &:hover .fc-side-pos {
+      color: var(--fc-coral);
+    }
+  }
+
+  & .fc-crate-row:hover {
+    background: var(--fc-ink-2);
+  }
+
+  & .fc-meter {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 14px;
+
+    & span {
+      width: 3px;
+      background: var(--fc-faint);
+    }
+
+    & span[data-on] {
+      background: var(--fc-coral);
+    }
+  }
+
+  & .fc-ticker {
+    display: flex;
+    width: max-content;
+    animation: fc-ticker 60s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .fc-ticker {
+      animation: none;
+    }
+  }
+}
+
+@keyframes fc-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
