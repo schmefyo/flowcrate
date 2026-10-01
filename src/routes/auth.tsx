@@ -20,6 +20,12 @@ export const Route = createFileRoute("/auth")({
         content: "Sign in to Flowcrate — your personal music brain for capturing tracks, crates, and connections.",
       },
     ],
+    links: [
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap",
+      },
+    ],
   }),
   component: AuthPage,
 });
@@ -78,33 +84,39 @@ function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-5 py-16">
-      <div className="w-full max-w-sm">
-        <Link to="/" className="label-mono text-primary">
+    <div className="fc-auth flex min-h-screen items-center justify-center px-5 py-12 sm:px-8 sm:py-16">
+      <div className="fc-auth-panel w-full max-w-sm border-y py-8 sm:py-10">
+        <Link to="/" className="fc-auth-back">
           ← Flowcrate
         </Link>
-        <h1 className="mt-6 text-3xl font-bold">
-          {mode === "signin" ? "Back to your crates" : "Start your Flowcrate"}
+        <p className="fc-auth-kicker mt-10">{mode === "signin" ? "Sign in" : "Sign up"}</p>
+        <h1 className="fc-auth-title mt-4">
+          {mode === "signin" ? "Welcome back" : "Create your account"}
         </h1>
 
-        <p className="mt-2 text-sm text-muted-foreground">
-          Your crates, tracks, and labels stay private to you.
+        <p className="mt-5 max-w-sm leading-relaxed text-muted-foreground">
+          {mode === "signin"
+            ? "Pick up where you left off."
+            : "Start saving tracks and building your music library."}
         </p>
 
-        <form onSubmit={onSubmit} className="mt-8 space-y-4">
+        <form onSubmit={onSubmit} className="fc-auth-form mt-8 space-y-5 border-t pt-7">
           {mode === "signup" ? (
             <div className="space-y-2">
-              <Label htmlFor="name">Display name</Label>
+              <Label className="fc-auth-label" htmlFor="name">
+                Display name
+              </Label>
               <Input
                 id="name"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="nightbus"
               />
             </div>
           ) : null}
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label className="fc-auth-label" htmlFor="email">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -114,7 +126,9 @@ function AuthPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label className="fc-auth-label" htmlFor="password">
+              Password
+            </Label>
             <Input
               id="password"
               type="password"
@@ -124,24 +138,24 @@ function AuthPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <Button type="submit" disabled={busy} className="w-full">
+          <Button type="submit" disabled={busy} className="fc-auth-primary w-full">
             {mode === "signin" ? "Sign in" : "Create account"}
           </Button>
         </form>
 
-        <div className="my-6 flex items-center gap-3 text-muted-foreground">
+        <div className="fc-auth-divider my-7 flex items-center gap-3 text-muted-foreground">
           <span className="h-px flex-1 bg-border" />
-          <span className="label-mono">or</span>
+          <span className="fc-auth-label">or</span>
           <span className="h-px flex-1 bg-border" />
         </div>
 
-        <Button variant="outline" className="w-full" onClick={google}>
+        <Button variant="outline" className="fc-auth-google w-full" onClick={google}>
           Continue with Google
         </Button>
 
         <button
           type="button"
-          className="mt-6 w-full text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          className="fc-auth-switch mt-7 w-full"
           onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
         >
           {mode === "signin" ? "No account yet? Sign up" : "Already have an account? Sign in"}

@@ -170,13 +170,21 @@ const SCENES = [
 ];
 
 function Landing() {
-  const [signedIn, setSignedIn] = useState(false);
+  const [authState, setAuthState] = useState<"pending" | "signed-in" | "signed-out">("pending");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSignedIn(Boolean(data.session)));
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (active) setAuthState(data.session ? "signed-in" : "signed-out");
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
+  const signedIn = authState === "signed-in";
   const entry = signedIn ? "/tracks" : "/auth";
+  const authPending = authState === "pending";
 
   return (
     <div className="fc-landing">
@@ -186,9 +194,15 @@ function Landing() {
             <span className="fc-display text-xl tracking-[-0.02em]">Flowcrate</span>
             <span className="fc-mono fc-faint hidden sm:inline">FC—001</span>
           </Link>
-          <Link to={entry} className="fc-link">
-            {signedIn ? "Open Flowcrate" : "Sign in"}
-          </Link>
+          {authPending ? (
+            <span className="fc-link invisible" aria-hidden>
+              Open Flowcrate
+            </span>
+          ) : (
+            <Link to={entry} className="fc-link">
+              {signedIn ? "Open Flowcrate" : "Sign in"}
+            </Link>
+          )}
         </div>
       </header>
 
@@ -216,12 +230,19 @@ function Landing() {
                 sort it in a way that makes sense to you.
               </p>
               <div>
-                <Link to={entry} className="fc-btn">
-                  {signedIn ? "Open Flowcrate" : "Start building your crate"}
-                  <span aria-hidden className="fc-btn-arrow">
-                    →
+                {authPending ? (
+                  <span className="fc-btn invisible" aria-hidden>
+                    Start building your crate
+                    <span className="fc-btn-arrow">→</span>
                   </span>
-                </Link>
+                ) : (
+                  <Link to={entry} className="fc-btn">
+                    {signedIn ? "Open Flowcrate" : "Start building your crate"}
+                    <span aria-hidden className="fc-btn-arrow">
+                      →
+                    </span>
+                  </Link>
+                )}
               </div>
               <ol className="fc-rule mt-auto hidden border-t lg:mb-16 lg:block">
                 {FLOW.map((item) => (
@@ -441,12 +462,19 @@ function Landing() {
                 another scene. Flowcrate helps you keep following.
               </p>
               <div>
-                <Link to={entry} className="fc-btn">
-                  {signedIn ? "Open Flowcrate" : "Start digging"}
-                  <span aria-hidden className="fc-btn-arrow">
-                    →
+                {authPending ? (
+                  <span className="fc-btn invisible" aria-hidden>
+                    Open Flowcrate
+                    <span className="fc-btn-arrow">→</span>
                   </span>
-                </Link>
+                ) : (
+                  <Link to={entry} className="fc-btn">
+                    {signedIn ? "Open Flowcrate" : "Start digging"}
+                    <span aria-hidden className="fc-btn-arrow">
+                      →
+                    </span>
+                  </Link>
+                )}
               </div>
             </div>
           </div>

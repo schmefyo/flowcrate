@@ -371,3 +371,125 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
+/* Public auth pages share the landing-page language without inheriting its layout. */
+.fc-auth {
+  --background: oklch(0.12 0.004 40);
+  --foreground: oklch(0.94 0.008 75);
+  --primary: oklch(0.7 0.2 29);
+  --primary-foreground: oklch(0.14 0.02 30);
+  --muted-foreground: oklch(0.66 0.01 60);
+  --border: oklch(0.27 0.006 45);
+  --input: oklch(0.34 0.008 45);
+  --ring: oklch(0.7 0.2 29);
+  --font-display: "Archivo", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+}
+
+.fc-auth::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.fc-auth :focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+.fc-auth-panel {
+  border-color: var(--border);
+}
+
+.fc-auth-back,
+.fc-auth-kicker,
+.fc-auth-label,
+.fc-auth-switch {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.fc-auth-back {
+  color: var(--primary);
+}
+
+.fc-auth-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 0.88;
+}
+
+.fc-auth-kicker,
+.fc-auth-label,
+.fc-auth-switch {
+  color: var(--muted-foreground);
+}
+
+.fc-auth .fc-input {
+  height: 2.9rem;
+  border-color: var(--input);
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--foreground);
+  font-family: var(--font-display);
+}
+
+.fc-auth .fc-input:focus-visible {
+  border-color: var(--primary);
+  box-shadow: none;
+}
+
+.fc-auth .fc-button {
+  height: 2.9rem;
+  border-radius: 0;
+  box-shadow: none;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.fc-auth .fc-auth-primary:hover {
+  background: var(--foreground);
+  color: var(--primary-foreground);
+}
+
+.fc-auth .fc-auth-google {
+  border-color: var(--input);
+  background: transparent;
+  color: var(--foreground);
+}
+
+.fc-auth .fc-auth-google:hover {
+  background: oklch(0.155 0.005 40);
+  color: var(--foreground);
+}
+
+.fc-auth-switch {
+  text-decoration: underline;
+  text-decoration-color: oklch(0.42 0.008 50);
+  text-underline-offset: 6px;
+  transition: text-decoration-color 150ms ease;
+}
+
+.fc-auth-switch:hover {
+  color: var(--foreground);
+  text-decoration-color: var(--primary);
+}
