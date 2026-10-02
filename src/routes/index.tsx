@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import heroImage from "@/assets/hero-club.jpg";
 import landingCss from "@/components/landing/landing.css?url";
 import { supabase } from "@/integrations/supabase/client";
+import { DEFAULT_AUTHENTICATED_DESTINATION } from "@/lib/auth-destination";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -183,7 +184,7 @@ function Landing() {
   }, []);
 
   const signedIn = authState === "signed-in";
-  const entry = signedIn ? "/tracks" : "/auth";
+  const entry = signedIn ? DEFAULT_AUTHENTICATED_DESTINATION : "/auth";
   const authPending = authState === "pending";
 
   return (

@@ -4,11 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
 const NAV = [
+  { to: "/discover", label: "Discover" },
   { to: "/tracks", label: "Tracks" },
   { to: "/crates", label: "Crates" },
   { to: "/artists", label: "DJs & Artists" },
   { to: "/labels", label: "Labels" },
-  { to: "/discover", label: "Discover" },
   { to: "/radar", label: "Radar" },
 ] as const;
 

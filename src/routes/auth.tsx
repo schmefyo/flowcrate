@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { authCallbackUrl, DEFAULT_AUTHENTICATED_DESTINATION } from "@/lib/auth-destination";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -40,7 +41,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/tracks" });
+      if (data.session) navigate({ to: DEFAULT_AUTHENTICATED_DESTINATION });
     });
   }, [navigate]);
 
@@ -53,7 +54,7 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: authCallbackUrl(window.location.origin),
             data: { display_name: displayName },
           },
         });
@@ -64,7 +65,7 @@ function AuthPage() {
         if (error) throw error;
       }
       const { data } = await supabase.auth.getSession();
-      if (data.session) navigate({ to: "/tracks" });
+      if (data.session) navigate({ to: DEFAULT_AUTHENTICATED_DESTINATION });
       else toast.info("Check your inbox to confirm your email.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
@@ -76,7 +77,7 @@ function AuthPage() {
   async function google() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: authCallbackUrl(window.location.origin) },
     });
     if (error) {
       toast.error("Google sign-in failed");
