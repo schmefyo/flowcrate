@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { refreshMixesdbCache } from "../../src/lib/mixesdb-cache-refresh.ts";
 import { createSourceCacheRefreshSummary } from "../../src/lib/source-cache-refresh-core.ts";
-import type {
-  MdbSet,
+import {
+  MIXESDB_TRACKLIST_PARSER_VERSION,
+  type MdbSet,
   MixesdbCategoryMember,
   MixesdbRevisionMetadata,
 } from "../../src/lib/mixesdb-sets.server.ts";
@@ -33,6 +34,7 @@ function stored(pageId: number, revisionId = pageId + 100): MdbSet {
     date: "2024-01-01",
     tracks: [],
     hasTracklist: false,
+    tracklistParserVersion: MIXESDB_TRACKLIST_PARSER_VERSION,
   };
 }
 
@@ -153,6 +155,87 @@ describe("revision-aware MixesDB refresh publication", () => {
     await run(failed);
     expect(failed.writes).toEqual([]);
     expect(failed.attempts).toEqual([]);
+  });
+
+  it("publishes parsed timestamp tracklists for a slash-named category", async () => {
+    const nerea = member(71, "2024-11-02 - Ne/Re/A - Rinse FM");
+    const test = setup([], [nerea], [revision(71)]);
+    test.fetchers.contents.mockResolvedValue({
+      pages: [
+        {
+          ...page(71, 171, nerea.title),
+          content: "[00:00] Example Artist - Example Track [Example Label]",
+        },
+      ],
+      failedPageIds: [],
+    });
+    const summary = createSourceCacheRefreshSummary();
+
+    await refreshMixesdbCache({
+      ...test,
+      names: ["Ne/Re/A"],
+      summary,
+      freshForMs: 12 * 60 * 60 * 1000,
+      concurrency: 1,
+      now,
+    });
+
+    expect(summary).toMatchObject({ refreshed: 1, failed: 0 });
+    expect(test.writes[0]).toMatchObject({
+      dj: "Ne/Re/A",
+      payload: [
+        expect.objectContaining({
+          dj: "Ne/Re/A",
+          tracks: [expect.objectContaining({ artist: "Example Artist", title: "Example Track" })],
+        }),
+      ],
+    });
+  });
+
+  it("re-parses an unchanged formerly unparsed page once after a parser upgrade", async () => {
+    const nerea = member(71, "2024-11-02 - Ne/Re/A - Rinse FM");
+    const row = {
+      dj_name: "Ne/Re/A",
+      fetched_at: oldAt,
+      payload: [
+        {
+          ...stored(71, 171),
+          title: nerea.title,
+          dj: "Ne/Re/A",
+          tracklistParserVersion: undefined,
+        },
+      ],
+      sync_state: { version: 1, snapshot: "complete" },
+    };
+    const test = setup([row], [nerea], [revision(71, 171)]);
+    test.fetchers.contents.mockResolvedValue({
+      pages: [
+        {
+          ...page(71, 171, nerea.title),
+          content: "[00:00] Example Artist - Example Track [Example Label]",
+        },
+      ],
+      failedPageIds: [],
+    });
+    const summary = createSourceCacheRefreshSummary();
+
+    await refreshMixesdbCache({
+      ...test,
+      names: ["Ne/Re/A"],
+      summary,
+      freshForMs: 12 * 60 * 60 * 1000,
+      concurrency: 1,
+      force: true,
+      now,
+    });
+
+    expect(test.fetchers.contents).toHaveBeenCalledWith([71]);
+    expect(summary).toMatchObject({ refreshed: 1, failed: 0 });
+    expect(test.writes[0].payload[0]).toMatchObject({
+      hasTracklist: true,
+      tracklistParserVersion: 2,
+      tracks: [expect.objectContaining({ artist: "Example Artist", title: "Example Track" })],
+    });
   });
 
   it("re-reads and retries one optimistic publish conflict, then fails safely on a second conflict", async () => {

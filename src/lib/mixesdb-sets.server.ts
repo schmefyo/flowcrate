@@ -22,6 +22,8 @@ const SET_PAGE_SIZE = 10;
 const REVISION_PAGE_SIZE = 50;
 /** Modest provider-safe parallelism for first full-history crawls. */
 export const MIXESDB_CONTENT_CONCURRENCY = 4;
+/** Bump when new parser support requires one safe re-read of unparsed pages. */
+export const MIXESDB_TRACKLIST_PARSER_VERSION = 2;
 
 export type MdbSet = {
   title: string;
@@ -32,6 +34,8 @@ export type MdbSet = {
   tracks: { artist: string; title: string; label: string | null }[];
   /** False when the page had no parseable tracklist. */
   hasTracklist: boolean;
+  /** Parser revision that produced the tracklist fields. */
+  tracklistParserVersion?: number;
   /** Stable MediaWiki page identity for revision-aware synchronization. */
   pageId: number;
   /** Latest revision used when this page's content was parsed. */
@@ -286,6 +290,7 @@ export function buildMdbSet(dj: string, page: MixesdbContentPage): MdbSet {
     date: eventDateFromTitle(page.title),
     tracks,
     hasTracklist: tracks.length > 0,
+    tracklistParserVersion: MIXESDB_TRACKLIST_PARSER_VERSION,
     pageId: page.pageId,
     revisionId: page.revisionId,
     revisionAt: page.revisionAt,

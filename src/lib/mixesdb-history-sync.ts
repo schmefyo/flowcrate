@@ -5,7 +5,12 @@
  * publisher can only replace a cache payload when `candidate.complete` is true.
  */
 import { eventDateFromTitle } from "./set-date.ts";
-import { mixesdbPageUrl, type CachedMdbSet, type MdbSet } from "./mixesdb-sets.server.ts";
+import {
+  MIXESDB_TRACKLIST_PARSER_VERSION,
+  mixesdbPageUrl,
+  type CachedMdbSet,
+  type MdbSet,
+} from "./mixesdb-sets.server.ts";
 
 export type MixesdbSyncState = {
   version: 1;
@@ -30,6 +35,8 @@ export type MixesdbHistoryPlan = {
   newPageIds: number[];
   changedPageIds: number[];
   legacyPageIds: number[];
+  /** Previously unparsed pages produced before the current parser revision. */
+  parserUpgradePageIds: number[];
   /** Existing identified pages that are no longer category members. */
   disappearedPageIds: number[];
   /** Current pages for which no latest revision metadata was supplied. */
@@ -95,6 +102,7 @@ export function planMixesdbHistorySync(
     newPageIds: [],
     changedPageIds: [],
     legacyPageIds: [],
+    parserUpgradePageIds: [],
     disappearedPageIds: [],
     missingRevisionPageIds: [],
     contentPageIds: [],
@@ -120,6 +128,14 @@ export function planMixesdbHistorySync(
       plan.contentPageIds.push(member.pageId);
     } else if (prior.revisionId !== revision.revisionId) {
       plan.changedPageIds.push(member.pageId);
+      plan.contentPageIds.push(member.pageId);
+    } else if (
+      !prior.hasTracklist &&
+      prior.tracklistParserVersion !== MIXESDB_TRACKLIST_PARSER_VERSION
+    ) {
+      // Re-read only formerly unparsed pages after a parser improvement. The
+      // new marker prevents legitimate no-tracklist pages from being retried.
+      plan.parserUpgradePageIds.push(member.pageId);
       plan.contentPageIds.push(member.pageId);
     } else {
       plan.unchangedPageIds.push(member.pageId);

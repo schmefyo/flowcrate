@@ -265,8 +265,13 @@ export function parseTracklist(
   const out: { artist: string; title: string; label: string | null }[] = [];
   for (const raw of wikitext.split("\n")) {
     let line = raw.trim();
-    if (!line.startsWith("#")) continue;
-    line = line.replace(/^#+\s*/, "");
+    // MixesDB uses both numbered rows and plain timestamp-prefixed rows.
+    // Restrict the latter to an explicit timestamp marker so prose beneath a
+    // Tracklist heading is not accidentally treated as a track.
+    const numbered = line.startsWith("#");
+    const timestamped = /^\[[0-9?:.]+\]\s*/.test(line);
+    if (!numbered && !timestamped) continue;
+    if (numbered) line = line.replace(/^#+\s*/, "");
     // leading timestamp markers like [00], [1?], [00:12], (15), 09.
     line = line.replace(/^\[[0-9?:.]+\]\s*/, "");
     line = stripMarker(line);

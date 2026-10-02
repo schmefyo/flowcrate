@@ -6,7 +6,11 @@ import {
   type MixesdbCategoryMember,
   type MixesdbRevisionMetadata,
 } from "../../src/lib/mixesdb-history-sync.ts";
-import type { CachedMdbSet, MdbSet } from "../../src/lib/mixesdb-sets.server.ts";
+import {
+  MIXESDB_TRACKLIST_PARSER_VERSION,
+  type CachedMdbSet,
+  type MdbSet,
+} from "../../src/lib/mixesdb-sets.server.ts";
 
 function member(
   pageId: number,
@@ -30,6 +34,7 @@ function set(pageId: number, revisionId = pageId + 1000, title = member(pageId).
     date: "2024-01-01",
     tracks: [],
     hasTracklist: false,
+    tracklistParserVersion: MIXESDB_TRACKLIST_PARSER_VERSION,
   };
 }
 

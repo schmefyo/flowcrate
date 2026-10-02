@@ -74,4 +74,26 @@ describe("cached artist feed aggregation", () => {
     expect(feed.setsScanned).toBe(201);
     expect(feed.tracks).toHaveLength(201);
   });
+
+  it("aggregates tracks from cached Ne/Re/A sets without changing its source spelling", () => {
+    const feed = djFeedFromSets(
+      "Ne/Re/A",
+      0,
+      [],
+      [
+        {
+          title: "2024-11-02 - Ne/Re/A - Rinse FM",
+          url: "https://example.test/nerea",
+          dj: "Ne/Re/A",
+          date: "2024-11-02",
+          tracks: [{ artist: "Example Artist", title: "Example Track", label: "Example Label" }],
+        },
+      ],
+    );
+
+    expect(feed.setsScanned).toBe(1);
+    expect(feed.tracks).toEqual([
+      expect.objectContaining({ artist: "Example Artist", title: "Example Track", plays: 1 }),
+    ]);
+  });
 });

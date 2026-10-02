@@ -217,7 +217,7 @@ describe("MixesDB source fetching", () => {
     });
   });
 
-  it("keeps punctuation in Or:la and Ne/Re/A category requests and result attribution", async () => {
+  it("keeps punctuation in source category requests and parses timestamp rows", async () => {
     const requestedCategories: string[] = [];
     const fetch = vi.fn(async (input: RequestInfo | URL) => {
       const params = requestParams(input);
@@ -232,28 +232,45 @@ describe("MixesDB source fetching", () => {
       return jsonResponse(
         revisionsResponse(
           Object.fromEntries(
-            (params.get("pageids") ?? "").split("|").map((pageId) => [pageId, "# ??? - ???"]),
+            (params.get("pageids") ?? "")
+              .split("|")
+              .map((pageId) => [pageId, "[00:00] Example Artist - Example Track [Example Label]"]),
           ),
         ),
       );
     });
     vi.stubGlobal("fetch", fetch);
 
-    const [orla, nerea] = await Promise.all([
+    const [orla, nerea, angel] = await Promise.all([
       mixesdbSetsForResult("Or:la"),
       mixesdbSetsForResult("Ne/Re/A"),
+      mixesdbSetsForResult("Angel D'Lite"),
     ]);
 
     expect(requestedCategories).toEqual(
-      expect.arrayContaining(["Category:Or:la", "Category:Ne/Re/A"]),
+      expect.arrayContaining([
+        "Category:Or:la",
+        "Category:Ne/Re/A",
+        "Category:Angel D'Lite",
+      ]),
     );
     expect(orla).toMatchObject({
       ok: true,
-      data: [expect.objectContaining({ dj: "Or:la", hasTracklist: false })],
+      data: [expect.objectContaining({ dj: "Or:la", hasTracklist: true })],
     });
     expect(nerea).toMatchObject({
       ok: true,
-      data: [expect.objectContaining({ dj: "Ne/Re/A", hasTracklist: false })],
+      data: [
+        expect.objectContaining({
+          dj: "Ne/Re/A",
+          hasTracklist: true,
+          tracks: [expect.objectContaining({ artist: "Example Artist", title: "Example Track" })],
+        }),
+      ],
+    });
+    expect(angel).toMatchObject({
+      ok: true,
+      data: [expect.objectContaining({ dj: "Angel D'Lite", hasTracklist: true })],
     });
   });
 });
