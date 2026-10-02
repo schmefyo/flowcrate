@@ -291,14 +291,19 @@ function LabelsPage() {
                     Edit
                   </Button>
                   {confirmRemoveId === l.id ? (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      disabled={remove.isPending}
-                      onClick={() => remove.mutate(l.id)}
-                    >
-                      {remove.isPending ? "Removing…" : "Really remove"}
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={remove.isPending}
+                        onClick={() => remove.mutate(l.id)}
+                      >
+                        {remove.isPending ? "Removing…" : "Really remove"}
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setConfirmRemoveId(null)}>
+                        Cancel
+                      </Button>
+                    </div>
                   ) : (
                     <Button
                       size="sm"

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { radarSetsFn } from "@/lib/radar.functions";
 import { sortSetsByTitleDate } from "@/lib/set-date";
 import { allNamesFor, canonicalName, canonicalNameMap } from "@/lib/artist-name";
+import { eligibleFollowedArtists } from "@/lib/followed-artists";
 
 export const Route = createFileRoute("/_authenticated/radar")({
   head: () => ({
@@ -58,17 +59,14 @@ function RadarPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("followed_djs")
-        .select("id, name, url, on_radar, aliases")
+        .select("id, name, url, aliases")
         .order("name");
       if (error) throw error;
       return data ?? [];
     },
   });
 
-  // The Artists page exposes an explicit Radar switch; Radar and Discover
-  // should both respect that preference while the cache scheduler still keeps
-  // every followed artist warm.
-  const artistRows = useMemo(() => (follows.data ?? []).filter((f) => f.on_radar), [follows.data]);
+  const artistRows = useMemo(() => eligibleFollowedArtists(follows.data), [follows.data]);
   const allNames = useMemo(() => artistRows.map((f) => f.name), [artistRows]);
   // Include every merged spelling in the scan, but label sets with the primary name.
   const scanNames = useMemo(

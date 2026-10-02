@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,6 +28,7 @@ export function CrateMatches({ crateId, seeds }: { crateId: string; seeds: Seed[
   const run = useServerFn(crateMatchesFn);
   const enrich = useServerFn(enrichTrackByNameFn);
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<"sets" | "gaps">("sets");
   const [setsShown, setSetsShown] = useState(PAGE);
   const [gapsShown, setGapsShown] = useState(PAGE);
@@ -89,7 +91,15 @@ export function CrateMatches({ crateId, seeds }: { crateId: string; seeds: Seed[
       qc.invalidateQueries({ queryKey: ["crate-tracks", crateId] });
       qc.invalidateQueries({ queryKey: ["tracks"] });
       qc.invalidateQueries({ queryKey: ["labels"] });
-      toast.success(found.length ? `Added to crate — found ${found.join(", ")}` : "Added to crate");
+      toast.success(
+        found.length ? `Added to crate — found ${found.join(", ")}` : "Added to crate",
+        {
+          action: {
+            label: "Go to Crate",
+            onClick: () => navigate({ to: "/crates/$crateId", params: { crateId } }),
+          },
+        },
+      );
     },
     onError: (e: Error) => toast.error(e.message),
   });

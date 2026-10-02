@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -8,16 +8,7 @@ import { AppShell, EmptyState } from "@/components/atlas/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { Switch } from "@/components/ui/switch";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { searchDjsFn } from "@/lib/discover.functions";
 import { lookupArtistLinks } from "@/lib/artist-lookup.functions";
 import { useSourceCacheWarmup } from "@/lib/source-cache-warmup";
@@ -47,7 +38,6 @@ type ArtistRow = {
   id: string;
   name: string;
   url: string | null;
-  on_radar: boolean;
   notes: string | null;
   links: unknown;
   aliases: string[] | null;
@@ -55,28 +45,22 @@ type ArtistRow = {
   created_at: string;
 };
 
-type ArtistPatch = {
-  on_radar?: boolean;
-  notes?: string | null;
-};
-
-type SortKey = "name" | "recent" | "radar";
+type SortKey = "name" | "recent";
 
 const SORTS: { value: SortKey; label: string }[] = [
   { value: "name", label: "Name" },
   { value: "recent", label: "Recently added" },
-  { value: "radar", label: "On radar first" },
 ];
 
 function ArtistsPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const searchDjs = useServerFn(searchDjsFn);
   const lookup = useServerFn(lookupArtistLinks);
   const warmSourceCache = useSourceCacheWarmup();
 
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("name");
-  const [editing, setEditing] = useState<ArtistRow | null>(null);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
 
   const artists = useQuery({
@@ -84,7 +68,7 @@ function ArtistsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("followed_djs")
-        .select("id, name, url, on_radar, notes, links, links_checked_at, created_at, aliases")
+        .select("id, name, url, notes, links, links_checked_at, created_at, aliases")
         .order("name");
       if (error) throw error;
       return (data ?? []) as ArtistRow[];
@@ -98,10 +82,6 @@ function ArtistsPage() {
     if (sort === "name") sorted.sort((a, b) => a.name.localeCompare(b.name));
     else if (sort === "recent")
       sorted.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
-    else
-      sorted.sort(
-        (a, b) => Number(b.on_radar) - Number(a.on_radar) || a.name.localeCompare(b.name),
-      );
     return sorted;
   }, [rows, sort]);
 
@@ -143,19 +123,18 @@ function ArtistsPage() {
       qc.invalidateQueries({ queryKey: ["artists"] });
       qc.invalidateQueries({ queryKey: ["followed-djs"] });
       warmSourceCache(result.names);
-      toast.success(result.kind === "merged" ? "Merged into the artist you follow" : "Following");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const update = useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: ArtistPatch }) => {
-      const { error } = await supabase.from("followed_djs").update(patch).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["artists"] });
-      qc.invalidateQueries({ queryKey: ["followed-djs"] });
+      toast.success(
+        result.kind === "merged"
+          ? "Merged into the artist you follow — finding sets…"
+          : "Following — finding sets…",
+        {
+          action: {
+            label: "Open artist page",
+            onClick: () =>
+              navigate({ to: "/artists/$name", params: { name: result.names[0] ?? "" } }),
+          },
+        },
+      );
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -249,8 +228,6 @@ function ArtistsPage() {
       })),
     [djSearch.data],
   );
-  const onRadarCount = rows.filter((a) => a.on_radar).length;
-
   return (
     <AppShell title="DJs & Artists" subtitle="The artists you follow.">
       <form
@@ -299,7 +276,7 @@ function ArtistsPage() {
                 </Button>
                 <Button size="sm" variant="ghost" asChild>
                   <Link to="/artists/$name" params={{ name: hit.name }}>
-                    View
+                    Open artist page
                   </Link>
                 </Button>
               </span>
@@ -316,9 +293,7 @@ function ArtistsPage() {
         ) : (
           <>
             <div className="mb-4 flex flex-wrap items-center gap-3">
-              <p className="label-mono text-xs text-muted-foreground">
-                {rows.length} followed · {onRadarCount} on radar
-              </p>
+              <p className="label-mono text-xs text-muted-foreground">{rows.length} followed</p>
               <Label htmlFor="artist_sort_key" className="text-xs text-muted-foreground">
                 Sort by
               </Label>
@@ -395,27 +370,20 @@ function ArtistsPage() {
                       ) : null}
                     </div>
 
-                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                      Radar
-                      <Switch
-                        checked={artist.on_radar}
-                        onCheckedChange={(checked) =>
-                          update.mutate({ id: artist.id, patch: { on_radar: checked } })
-                        }
-                      />
-                    </label>
-                    <Button size="sm" variant="ghost" onClick={() => setEditing(artist)}>
-                      Edit
-                    </Button>
                     {confirmRemoveId === artist.id ? (
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        disabled={remove.isPending}
-                        onClick={() => remove.mutate(artist.id)}
-                      >
-                        Really remove
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          disabled={remove.isPending}
+                          onClick={() => remove.mutate(artist.id)}
+                        >
+                          {remove.isPending ? "Unfollowing…" : "Really unfollow"}
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setConfirmRemoveId(null)}>
+                          Cancel
+                        </Button>
+                      </div>
                     ) : (
                       <Button
                         size="sm"
@@ -423,7 +391,7 @@ function ArtistsPage() {
                         className="text-muted-foreground"
                         onClick={() => setConfirmRemoveId(artist.id)}
                       >
-                        Remove
+                        Unfollow
                       </Button>
                     )}
                   </li>
@@ -433,57 +401,6 @@ function ArtistsPage() {
           </>
         )}
       </div>
-
-      <EditArtistDialog
-        artist={editing}
-        onOpenChange={(open) => {
-          if (!open) setEditing(null);
-        }}
-        onSave={(patch) => {
-          if (editing) update.mutate({ id: editing.id, patch });
-          setEditing(null);
-        }}
-      />
     </AppShell>
-  );
-}
-
-function EditArtistDialog({
-  artist,
-  onOpenChange,
-  onSave,
-}: {
-  artist: ArtistRow | null;
-  onOpenChange: (open: boolean) => void;
-  onSave: (patch: ArtistPatch) => void;
-}) {
-  const [notes, setNotes] = useState("");
-
-  useEffect(() => {
-    setNotes(artist?.notes ?? "");
-  }, [artist]);
-
-  return (
-    <Dialog open={!!artist} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{artist?.name}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="artist-notes">Notes</Label>
-            <Textarea
-              id="artist-notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button onClick={() => onSave({ notes: notes.trim() || null })}>Save</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }

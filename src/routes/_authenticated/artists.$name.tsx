@@ -12,12 +12,14 @@ import { radarSetsFn } from "@/lib/radar.functions";
 import { playingRowClass, useNowPlaying } from "@/lib/playback";
 import { DiscoverPreview } from "@/components/atlas/DiscoverPreview";
 import { SetsDialog } from "@/components/atlas/SetsDialog";
+import { AddToCrateDialog } from "@/components/atlas/AddToCrateButton";
 import { enrichTrackByNameFn } from "@/lib/track-import.functions";
 import { enrichExistingTrack } from "@/lib/enrich-track";
 import { useSourceCacheWarmup } from "@/lib/source-cache-warmup";
 import { artistLinks } from "@/lib/artist-links";
 import { sortSetsByTitleDate } from "@/lib/set-date";
 import { allNamesFor, normalizeArtistName } from "@/lib/artist-name";
+import { artistTrackDisplayState } from "@/lib/artist-track-state";
 import type { FeedTrack } from "@/lib/discover.server";
 
 export const Route = createFileRoute("/_authenticated/artists/$name")({
@@ -54,17 +56,21 @@ function ArtistPage() {
   const [setLimit, setSetLimit] = useState(50);
   const [visible, setVisible] = useState(50);
   const [hideOwned, setHideOwned] = useState(true);
+  const [justSaved, setJustSaved] = useState<Set<string>>(() => new Set());
   const [resolved, setResolved] = useState<
     Record<string, { previewUrl: string | null; artworkUrl: string | null }>
   >({});
   const [selected, setSelected] = useState<FeedTrack | null>(null);
+  const [addToCrateTrack, setAddToCrateTrack] = useState<{ id: string; title: string } | null>(
+    null,
+  );
 
   const artist = useQuery({
     queryKey: ["artist", name],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("followed_djs")
-        .select("id, name, url, on_radar, notes, links, aliases")
+        .select("id, name, url, notes, links, aliases")
         .eq("name", name)
         .maybeSingle();
       if (error) throw error;
@@ -116,7 +122,9 @@ function ArtistPage() {
     () => allRows.filter((t) => owned.has(t.key)).length,
     [allRows, owned],
   );
-  const rows = hideOwned ? allRows.filter((t) => !owned.has(t.key)) : allRows;
+  const rows = allRows.filter(
+    (track) => artistTrackDisplayState(track.key, { hideOwned, owned, justSaved }).isVisible,
+  );
   const pageRows = rows.slice(0, visible);
   const nowPlaying = useNowPlaying();
 
@@ -137,7 +145,7 @@ function ArtistPage() {
       qc.invalidateQueries({ queryKey: ["artists"] });
       qc.invalidateQueries({ queryKey: ["followed-djs"] });
       warmSourceCache([name]);
-      toast.success("Following");
+      toast.success("Following — finding sets…");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -162,14 +170,21 @@ function ArtistPage() {
         .single();
       if (error) throw error;
       try {
-        return await enrichExistingTrack(enrich, inserted as never);
+        const found = await enrichExistingTrack(enrich, inserted as never);
+        return { found, track: { id: inserted.id, title: inserted.title, key: track.key } };
       } catch {
-        return [];
+        return { found: [], track: { id: inserted.id, title: inserted.title, key: track.key } };
       }
     },
-    onSuccess: (found) => {
+    onSuccess: ({ track }) => {
       qc.invalidateQueries({ queryKey: ["tracks"] });
-      toast.success(found?.length ? `Added — found ${found.join(", ")}` : "Added to your tracks");
+      setJustSaved((previous) => new Set(previous).add(track.key));
+      toast.success("Saved to Tracks", {
+        action: {
+          label: "Add to Crate",
+          onClick: () => setAddToCrateTrack(track),
+        },
+      });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -204,7 +219,6 @@ function ArtistPage() {
             {l.label}
           </a>
         ))}
-        {artist.data && !artist.data.on_radar ? <span>not on radar</span> : null}
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -294,7 +308,11 @@ function ArtistPage() {
             </p>
             <ul className="divide-y divide-border rounded-md border border-border">
               {pageRows.map((track) => {
-                const already = owned.has(track.key);
+                const { isSaved: already } = artistTrackDisplayState(track.key, {
+                  hideOwned,
+                  owned,
+                  justSaved,
+                });
                 return (
                   <li
                     key={track.key}
@@ -333,10 +351,15 @@ function ArtistPage() {
                     <Button
                       size="sm"
                       variant={already ? "ghost" : "secondary"}
+                      className={
+                        already
+                          ? undefined
+                          : "transition-colors hover:bg-primary hover:text-primary-foreground"
+                      }
                       disabled={already || addTrack.isPending}
                       onClick={() => addTrack.mutate(track)}
                     >
-                      {already ? "In your crate" : "Add"}
+                      {already ? "Saved" : "Add to Tracks"}
                     </Button>
                   </li>
                 );
@@ -360,6 +383,14 @@ function ArtistPage() {
           if (!open) setSelected(null);
         }}
       />
+      {addToCrateTrack ? (
+        <AddToCrateDialog
+          trackId={addToCrateTrack.id}
+          title={addToCrateTrack.title}
+          open
+          onOpenChange={(open) => !open && setAddToCrateTrack(null)}
+        />
+      ) : null}
     </AppShell>
   );
 }

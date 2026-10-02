@@ -12,6 +12,7 @@ import { playingRowClass, useNowPlaying } from "@/lib/playback";
 import { DiscoverPreview } from "@/components/atlas/DiscoverPreview";
 import { FixLinkButton } from "@/components/atlas/FixLinkButton";
 import { SetsDialog } from "@/components/atlas/SetsDialog";
+import { AddToCrateDialog } from "@/components/atlas/AddToCrateButton";
 import { enrichTrackByNameFn } from "@/lib/track-import.functions";
 import { enrichExistingTrack } from "@/lib/enrich-track";
 import type { Radar, RadarTrack } from "@/lib/radar.server";
@@ -26,6 +27,7 @@ import { eventDateForSet } from "@/lib/set-date";
 import { popularityScore, slotCount, type Slot } from "@/lib/discover-rank";
 import { lookupPopularity } from "@/lib/popularity.functions";
 import { lookupMixCounts } from "@/lib/mix-count.functions";
+import { eligibleFollowedArtists } from "@/lib/followed-artists";
 import type { MixCount } from "@/lib/mix-count.server";
 import type { Popularity } from "@/lib/popularity.server";
 
@@ -112,6 +114,9 @@ function DiscoverPage() {
     Record<string, { previewUrl: string | null; artworkUrl: string | null }>
   >({});
   const [selected, setSelected] = useState<RadarTrack | null>(null);
+  const [addToCrateTrack, setAddToCrateTrack] = useState<{ id: string; title: string } | null>(
+    null,
+  );
 
   // Restore last visit's picks and filters (client-side only, after hydration).
   useEffect(() => {
@@ -134,14 +139,14 @@ function DiscoverPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("followed_djs")
-        .select("id, name, url, on_radar, aliases")
+        .select("id, name, url, aliases")
         .order("name");
       if (error) throw error;
       return data ?? [];
     },
   });
 
-  const candidates = useMemo(() => (follows.data ?? []).filter((f) => f.on_radar), [follows.data]);
+  const candidates = useMemo(() => eligibleFollowedArtists(follows.data), [follows.data]);
 
   // Start with a single artist selected so the first scan stays fast.
   useEffect(() => {
@@ -303,14 +308,20 @@ function DiscoverPage() {
         .single();
       if (error) throw error;
       try {
-        return await enrichExistingTrack(enrich, inserted as never);
+        const found = await enrichExistingTrack(enrich, inserted as never);
+        return { found, track: { id: inserted.id, title: inserted.title } };
       } catch {
-        return [];
+        return { found: [], track: { id: inserted.id, title: inserted.title } };
       }
     },
-    onSuccess: (found) => {
+    onSuccess: ({ track }) => {
       qc.invalidateQueries({ queryKey: ["tracks"] });
-      toast.success(found?.length ? `Added — found ${found.join(", ")}` : "Added to your tracks");
+      toast.success("Saved to Tracks", {
+        action: {
+          label: "Add to Crate",
+          onClick: () => setAddToCrateTrack(track),
+        },
+      });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -331,7 +342,7 @@ function DiscoverPage() {
       }
     >
       {!candidates.length ? (
-        <EmptyState text="No artists on radar yet — follow some in DJs & Artists and switch their Radar toggle on." />
+        <EmptyState text="No followed artists yet — find them in DJs & Artists." />
       ) : (
         <>
           <div className="mb-3 flex flex-wrap gap-2">
@@ -526,6 +537,7 @@ function DiscoverPage() {
                           <Button
                             size="sm"
                             variant="secondary"
+                            className="transition-colors hover:bg-primary hover:text-primary-foreground"
                             disabled={addTrack.isPending}
                             onClick={() => addTrack.mutate(track)}
                           >
@@ -555,6 +567,14 @@ function DiscoverPage() {
               if (!open) setSelected(null);
             }}
           />
+          {addToCrateTrack ? (
+            <AddToCrateDialog
+              trackId={addToCrateTrack.id}
+              title={addToCrateTrack.title}
+              open
+              onOpenChange={(open) => !open && setAddToCrateTrack(null)}
+            />
+          ) : null}
         </>
       )}
     </AppShell>

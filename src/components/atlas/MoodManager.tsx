@@ -87,7 +87,7 @@ export function MoodManager() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
-          Edit moods
+          Add / edit moods
         </Button>
       </DialogTrigger>
       <DialogContent>

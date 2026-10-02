@@ -43,7 +43,7 @@ export function MixesDialog({ track, knownTotal, onOpenChange }: Props) {
           </div>
         ) : query.isError ? (
           <p className="py-6 text-center text-sm text-destructive">
-            {(query.error as Error).message}
+            Couldn’t load mixes right now.
           </p>
         ) : !query.data?.hits.length ? (
           <p className="py-6 text-center text-sm text-muted-foreground">

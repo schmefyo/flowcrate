@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell, EmptyState } from "@/components/atlas/AppShell";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +19,8 @@ import {
 import { type CrateRow } from "@/lib/atlas";
 import { MoodManager } from "@/components/atlas/MoodManager";
 import { useMoods } from "@/lib/moods";
+import { CrateMoodPicker } from "@/components/atlas/CrateMoodPicker";
+import { crateMoods } from "@/lib/crate-moods";
 
 export const Route = createFileRoute("/_authenticated/crates/")({
   head: () => ({
@@ -35,6 +38,7 @@ function CratesPage() {
   const qc = useQueryClient();
   const moods = (useMoods().data ?? []).map((m) => m.name);
   const [open, setOpen] = useState(false);
+  const [selectedMoods, setSelectedMoods] = useState<string[]>([]);
 
   const cratesQuery = useQuery({
     queryKey: ["crates"],
@@ -52,14 +56,14 @@ function CratesPage() {
   });
 
   const createCrate = useMutation({
-    mutationFn: async (form: FormData) => {
+    mutationFn: async ({ form, moods: crateMoods }: { form: FormData; moods: string[] }) => {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
       if (!userId) throw new Error("Not signed in");
       const { error } = await supabase.from("crates").insert({
         user_id: userId,
         name: String(form.get("name") ?? "").trim(),
-        mood: String(form.get("mood") ?? "") || null,
+        moods: crateMoods,
         description: String(form.get("description") ?? "").trim() || null,
       });
       if (error) throw error;
@@ -67,6 +71,7 @@ function CratesPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["crates"] });
       setOpen(false);
+      setSelectedMoods([]);
       toast.success("Crate created");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -81,7 +86,13 @@ function CratesPage() {
       action={
         <div className="flex items-center gap-2">
           <MoodManager />
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog
+            open={open}
+            onOpenChange={(next) => {
+              setOpen(next);
+              if (!next) setSelectedMoods([]);
+            }}
+          >
             <DialogTrigger asChild>
               <Button>New crate</Button>
             </DialogTrigger>
@@ -93,7 +104,7 @@ function CratesPage() {
                 className="space-y-4"
                 onSubmit={(e) => {
                   e.preventDefault();
-                  createCrate.mutate(new FormData(e.currentTarget));
+                  createCrate.mutate({ form: new FormData(e.currentTarget), moods: selectedMoods });
                 }}
               >
                 <div className="space-y-2">
@@ -101,20 +112,12 @@ function CratesPage() {
                   <Input id="name" name="name" required placeholder="5am basement" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="mood">Mood</Label>
-                  <select
-                    id="mood"
-                    name="mood"
-                    defaultValue=""
-                    className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
-                  >
-                    <option value="">—</option>
-                    {moods.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    ))}
-                  </select>
+                  <Label>Moods</Label>
+                  <CrateMoodPicker
+                    moods={moods}
+                    selected={selectedMoods}
+                    onChange={setSelectedMoods}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
@@ -136,24 +139,41 @@ function CratesPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((c) => (
-            <Link
-              key={c.id}
-              to="/crates/$crateId"
-              params={{ crateId: c.id }}
-              className="fc-crate-tile group border border-border p-5"
-            >
-              <div className="label-mono text-primary">{c.mood ?? "no mood set"}</div>
-              <h2 className="fc-display-heading mt-2 text-xl group-hover:text-primary">{c.name}</h2>
-              {c.description ? (
-                <p className="mt-2 text-sm text-muted-foreground">{c.description}</p>
-              ) : null}
-              <p className="mt-4 text-sm text-muted-foreground">
-                {c.count} track{c.count === 1 ? "" : "s"}
-              </p>
-            </Link>
+            <CrateCard key={c.id} crate={c} />
           ))}
         </div>
       )}
     </AppShell>
+  );
+}
+
+function CrateCard({ crate }: { crate: CrateRow & { count: number } }) {
+  // Lets the route render against a database that has not yet received the
+  // additive multi-mood migration, while preserving its legacy mood label.
+  const moods = crateMoods(crate);
+
+  return (
+    <Link
+      to="/crates/$crateId"
+      params={{ crateId: crate.id }}
+      className="fc-crate-tile group border border-border p-5"
+    >
+      {moods.length ? (
+        <div className="flex flex-wrap gap-1">
+          {moods.map((mood) => (
+            <Badge key={mood} variant="outline">
+              {mood}
+            </Badge>
+          ))}
+        </div>
+      ) : null}
+      <h2 className="fc-display-heading mt-4 text-xl group-hover:text-primary">{crate.name}</h2>
+      {crate.description ? (
+        <p className="mt-2 text-sm text-muted-foreground">{crate.description}</p>
+      ) : null}
+      <p className="mt-4 text-sm text-muted-foreground">
+        {crate.count} track{crate.count === 1 ? "" : "s"}
+      </p>
+    </Link>
   );
 }
