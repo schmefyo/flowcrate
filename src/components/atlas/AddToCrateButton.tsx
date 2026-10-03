@@ -80,6 +80,7 @@ export function AddToCrateDialog({
       return crateId;
     },
     onSuccess: (crateId) => {
+      qc.invalidateQueries({ queryKey: ["tracks", "label-library"] });
       qc.invalidateQueries({ queryKey: ["track-crates", trackId] });
       qc.invalidateQueries({ queryKey: ["crate-tracks", crateId] });
       toast.success("Added to crate", {
@@ -124,6 +125,7 @@ export function AddToCrateDialog({
       });
     },
     onSuccess: (crateId) => {
+      qc.invalidateQueries({ queryKey: ["tracks", "label-library"] });
       qc.invalidateQueries({ queryKey: ["crates"] });
       qc.invalidateQueries({ queryKey: ["track-crates", trackId] });
       qc.invalidateQueries({ queryKey: ["crate-tracks", crateId] });

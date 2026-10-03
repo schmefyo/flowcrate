@@ -20,6 +20,7 @@ import { Route as AuthenticatedArtistsIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedArtistsNameRouteImport } from './routes/_authenticated/artists.$name'
 import { Route as AuthenticatedCratesIndexRouteImport } from './routes/_authenticated/crates.index'
 import { Route as AuthenticatedCratesCrateIdRouteImport } from './routes/_authenticated/crates.$crateId'
+import { Route as AuthenticatedLabelsLabelIdRouteImport } from './routes/_authenticated/labels_.$labelId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -79,6 +80,12 @@ const AuthenticatedCratesCrateIdRoute =
     path: '/crates/$crateId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedLabelsLabelIdRoute =
+  AuthenticatedLabelsLabelIdRouteImport.update({
+    id: '/labels_/$labelId',
+    path: '/labels/$labelId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/tracks': typeof AuthenticatedTracksRoute
   '/artists/$name': typeof AuthenticatedArtistsNameRoute
   '/crates/$crateId': typeof AuthenticatedCratesCrateIdRoute
+  '/labels/$labelId': typeof AuthenticatedLabelsLabelIdRoute
   '/artists/': typeof AuthenticatedArtistsIndexRoute
   '/crates/': typeof AuthenticatedCratesIndexRoute
 }
@@ -101,6 +109,7 @@ export interface FileRoutesByTo {
   '/tracks': typeof AuthenticatedTracksRoute
   '/artists/$name': typeof AuthenticatedArtistsNameRoute
   '/crates/$crateId': typeof AuthenticatedCratesCrateIdRoute
+  '/labels/$labelId': typeof AuthenticatedLabelsLabelIdRoute
   '/artists': typeof AuthenticatedArtistsIndexRoute
   '/crates': typeof AuthenticatedCratesIndexRoute
 }
@@ -115,6 +124,7 @@ export interface FileRoutesById {
   '/_authenticated/tracks': typeof AuthenticatedTracksRoute
   '/_authenticated/artists/$name': typeof AuthenticatedArtistsNameRoute
   '/_authenticated/crates/$crateId': typeof AuthenticatedCratesCrateIdRoute
+  '/_authenticated/labels_/$labelId': typeof AuthenticatedLabelsLabelIdRoute
   '/_authenticated/artists/': typeof AuthenticatedArtistsIndexRoute
   '/_authenticated/crates/': typeof AuthenticatedCratesIndexRoute
 }
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/tracks'
     | '/artists/$name'
     | '/crates/$crateId'
+    | '/labels/$labelId'
     | '/artists/'
     | '/crates/'
   fileRoutesByTo: FileRoutesByTo
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/tracks'
     | '/artists/$name'
     | '/crates/$crateId'
+    | '/labels/$labelId'
     | '/artists'
     | '/crates'
   id:
@@ -154,6 +166,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tracks'
     | '/_authenticated/artists/$name'
     | '/_authenticated/crates/$crateId'
+    | '/_authenticated/labels_/$labelId'
     | '/_authenticated/artists/'
     | '/_authenticated/crates/'
   fileRoutesById: FileRoutesById
@@ -243,6 +256,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCratesCrateIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/labels_/$labelId': {
+      id: '/_authenticated/labels_/$labelId'
+      path: '/labels/$labelId'
+      fullPath: '/labels/$labelId'
+      preLoaderRoute: typeof AuthenticatedLabelsLabelIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -253,6 +273,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTracksRoute: typeof AuthenticatedTracksRoute
   AuthenticatedArtistsNameRoute: typeof AuthenticatedArtistsNameRoute
   AuthenticatedCratesCrateIdRoute: typeof AuthenticatedCratesCrateIdRoute
+  AuthenticatedLabelsLabelIdRoute: typeof AuthenticatedLabelsLabelIdRoute
   AuthenticatedArtistsIndexRoute: typeof AuthenticatedArtistsIndexRoute
   AuthenticatedCratesIndexRoute: typeof AuthenticatedCratesIndexRoute
 }
@@ -264,6 +285,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTracksRoute: AuthenticatedTracksRoute,
   AuthenticatedArtistsNameRoute: AuthenticatedArtistsNameRoute,
   AuthenticatedCratesCrateIdRoute: AuthenticatedCratesCrateIdRoute,
+  AuthenticatedLabelsLabelIdRoute: AuthenticatedLabelsLabelIdRoute,
   AuthenticatedArtistsIndexRoute: AuthenticatedArtistsIndexRoute,
   AuthenticatedCratesIndexRoute: AuthenticatedCratesIndexRoute,
 }

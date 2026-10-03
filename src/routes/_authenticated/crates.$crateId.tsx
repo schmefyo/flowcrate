@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -445,7 +445,21 @@ function CrateDetail() {
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {row.tracks?.artist}
-                      {row.tracks?.labels ? ` · ${row.tracks.labels.name}` : ""}
+                      {row.tracks?.labels ? (
+                        <>
+                          {" "}
+                          ·{" "}
+                          <Link
+                            to="/labels/$labelId"
+                            params={{ labelId: row.tracks.labels.id }}
+                            className="hover:text-primary underline decoration-dotted"
+                          >
+                            {row.tracks.labels.name}
+                          </Link>
+                        </>
+                      ) : (
+                        ""
+                      )}
                       {row.tracks?.release_year ? ` · ${row.tracks.release_year}` : ""}
                     </div>
                   </div>

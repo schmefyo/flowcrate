@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -258,7 +258,13 @@ function LabelsPage() {
                 <li key={l.id} className="flex flex-wrap items-start gap-3 p-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">{l.name}</span>
+                      <Link
+                        to="/labels/$labelId"
+                        params={{ labelId: l.id }}
+                        className="font-medium hover:text-primary"
+                      >
+                        {l.name}
+                      </Link>
                       <span className="text-xs text-muted-foreground">
                         {l.trackCount} track{l.trackCount === 1 ? "" : "s"}
                       </span>

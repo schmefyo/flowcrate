@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { lookupTrackByUrl, enrichTrackByNameFn } from "@/lib/track-import.functions";
 import { enrichExistingTrack } from "@/lib/enrich-track";
@@ -900,7 +900,21 @@ function TracksPage() {
                   <div className="text-sm text-muted-foreground">
                     {t.artist}
                     {t.mix_name ? ` · ${t.mix_name}` : ""}
-                    {t.labels ? ` · ${t.labels.name}` : ""}
+                    {t.labels ? (
+                      <>
+                        {" "}
+                        ·{" "}
+                        <Link
+                          to="/labels/$labelId"
+                          params={{ labelId: t.labels.id }}
+                          className="hover:text-primary underline decoration-dotted"
+                        >
+                          {t.labels.name}
+                        </Link>
+                      </>
+                    ) : (
+                      ""
+                    )}
                   </div>
                 </div>
                 <div className="label-mono text-xs text-muted-foreground">
