@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { searchDjsFn } from "@/lib/discover.functions";
 import { lookupArtistLinks } from "@/lib/artist-lookup.functions";
+import { followArtist, unfollowArtist } from "@/lib/artist-follow";
 import { useSourceCacheWarmup } from "@/lib/source-cache-warmup";
 import { artistLinks } from "@/lib/artist-links";
 import { groupByName, normalizeArtistName } from "@/lib/artist-name";
@@ -91,34 +92,7 @@ function ArtistsPage() {
   });
 
   const follow = useMutation({
-    mutationFn: async (hit: { name: string; url: string; aliases?: string[] }) => {
-      const { data: auth } = await supabase.auth.getUser();
-      const userId = auth.user?.id;
-      if (!userId) throw new Error("You need to be signed in");
-      const aliases = (hit.aliases ?? []).filter(
-        (a) => normalizeArtistName(a) === normalizeArtistName(hit.name) && a !== hit.name,
-      );
-      // Same artist spelled differently? Fold it into the row you already follow.
-      const existing = rows.find(
-        (r) => normalizeArtistName(r.name) === normalizeArtistName(hit.name),
-      );
-      if (existing) {
-        const merged = [...new Set([...(existing.aliases ?? []), hit.name, ...aliases])].filter(
-          (a) => a !== existing.name,
-        );
-        const { error } = await supabase
-          .from("followed_djs")
-          .update({ aliases: merged })
-          .eq("id", existing.id);
-        if (error) throw error;
-        return { kind: "merged" as const, names: [existing.name, ...merged] };
-      }
-      const { error } = await supabase
-        .from("followed_djs")
-        .insert({ user_id: userId, name: hit.name, url: hit.url, aliases });
-      if (error) throw error;
-      return { kind: "followed" as const, names: [hit.name, ...aliases] };
-    },
+    mutationFn: (hit: { name: string; url: string; aliases?: string[] }) => followArtist(hit, rows),
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ["artists"] });
       qc.invalidateQueries({ queryKey: ["followed-djs"] });
@@ -140,10 +114,7 @@ function ArtistsPage() {
   });
 
   const remove = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("followed_djs").delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: unfollowArtist,
     onSuccess: () => {
       setConfirmRemoveId(null);
       qc.invalidateQueries({ queryKey: ["artists"] });

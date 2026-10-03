@@ -1,11 +1,46 @@
 import { describe, expect, it } from "vitest";
 import {
   deriveLabelLibrary,
+  localArtistFollowState,
   readLibraryPages,
   resolveLocalArtist,
 } from "../../src/lib/label-library";
 
 describe("label library connections", () => {
+  it("offers a follow for a safe unfollowed whole name, preserving punctuation", () => {
+    expect(localArtistFollowState(" Angel D'Lite ", [])).toEqual({
+      status: "available",
+      name: "Angel D'Lite",
+    });
+    expect(localArtistFollowState("Ne/Re/A", [])).toEqual({ status: "available", name: "Ne/Re/A" });
+  });
+  it("shows following for a unique whole-name or explicitly stored alias", () => {
+    const followed = [{ name: "D. Tiffany", aliases: ["D.Tiffany"] }];
+    expect(localArtistFollowState("d.tiffany", followed)).toEqual({
+      status: "followed",
+      name: "D. Tiffany",
+    });
+  });
+  it("blocks ambiguous credits, duplicate alias matches, and inferred spelling matches", () => {
+    for (const credit of [
+      "Powder & Ben UFO",
+      "Powder / Ben UFO",
+      "Powder b2b Ben UFO",
+      "Powder feat. Ben UFO",
+      "Unknown",
+      "Various Artists",
+      "",
+    ]) {
+      expect(localArtistFollowState(credit, [])).toEqual({ status: "ambiguous", name: null });
+    }
+    expect(localArtistFollowState("D.Tiffany", [{ name: "D. Tiffany" }]).status).toBe("ambiguous");
+    expect(
+      localArtistFollowState("D.Tiffany", [
+        { name: "One", aliases: ["D.Tiffany"] },
+        { name: "Two", aliases: ["D.Tiffany"] },
+      ]).status,
+    ).toBe("ambiguous");
+  });
   it("reads later database pages and rejects incomplete reads after an error", async () => {
     const items = [1, 2, 3, 4, 5];
     expect(

@@ -1,14 +1,18 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell, EmptyState } from "@/components/atlas/AppShell";
 import { EditLabelDialog } from "@/components/atlas/EditLabelDialog";
+import { LabelIdentity } from "@/components/atlas/LabelIdentity";
 import { DiscoverPreview } from "@/components/atlas/DiscoverPreview";
 import { FullTrackPlayer } from "@/components/atlas/FullTrackPlayer";
 import { AddToCrateButton } from "@/components/atlas/AddToCrateButton";
 import { Button } from "@/components/ui/button";
-import { deriveLabelLibrary, readLibraryPages, resolveLocalArtist } from "@/lib/label-library";
+import { deriveLabelLibrary, localArtistFollowState, readLibraryPages } from "@/lib/label-library";
+import { followArtist } from "@/lib/artist-follow";
+import { useSourceCacheWarmup } from "@/lib/source-cache-warmup";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/labels_/$labelId")({
   head: () => ({ meta: [{ title: "Label library — Flowcrate" }] }),
@@ -17,6 +21,9 @@ export const Route = createFileRoute("/_authenticated/labels_/$labelId")({
 
 function LabelDetailPage() {
   const { labelId } = Route.useParams();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const warmSourceCache = useSourceCacheWarmup();
   const [editing, setEditing] = useState(false);
   const [visible, setVisible] = useState(50);
   const label = useQuery({
@@ -30,6 +37,53 @@ function LabelDetailPage() {
       if (error) throw error;
       return data;
     },
+  });
+  const follow = useMutation({
+    mutationFn: (name: string) =>
+      followArtist(
+        {
+          name,
+          url: `https://www.mixesdb.com/w/Category:${encodeURIComponent(name.replace(/ /g, "_"))}`,
+        },
+        undefined,
+        { identity: "library" },
+      ),
+    onSuccess: (result, followedName) => {
+      const primary = result.names[0]!;
+      qc.setQueryData<typeof library.data>(["tracks", "label-library", labelId], (previous) =>
+        previous
+          ? {
+              ...previous,
+              followed: [
+                ...previous.followed.filter((artist) => artist.name !== primary),
+                { name: primary, aliases: result.names.slice(1) },
+              ],
+            }
+          : previous,
+      );
+      qc.invalidateQueries({ queryKey: ["artist"] });
+      qc.invalidateQueries({ queryKey: ["artists"] });
+      qc.invalidateQueries({ queryKey: ["followed-djs"] });
+      qc.invalidateQueries({ queryKey: ["tracks", "label-library"] });
+      warmSourceCache(result.names);
+      const state = localArtistFollowState(
+        followedName,
+        qc.getQueryData<NonNullable<typeof library.data>>(["tracks", "label-library", labelId])
+          ?.followed ?? [],
+      );
+      toast.success(
+        "Following — finding sets…",
+        state.status === "followed"
+          ? {
+              action: {
+                label: "View artist",
+                onClick: () => navigate({ to: "/artists/$name", params: { name: state.name } }),
+              },
+            }
+          : undefined,
+      );
+    },
+    onError: (error: Error) => toast.error(error.message),
   });
   const library = useQuery({
     queryKey: ["tracks", "label-library", labelId],
@@ -79,7 +133,8 @@ function LabelDetailPage() {
       )
     : [];
   const artistName = (name: string) => {
-    const target = resolveLocalArtist(name, library.data?.followed ?? []);
+    const state = localArtistFollowState(name, library.data?.followed ?? []);
+    const target = state.status === "followed" ? state.name : null;
     return target ? (
       <Link
         to="/artists/$name"
@@ -95,8 +150,19 @@ function LabelDetailPage() {
   return (
     <AppShell
       title={row?.name ?? "Label"}
-      subtitle="Connections in your library."
-      action={<Link to="/labels">All labels</Link>}
+      header={
+        row ? (
+          <LabelIdentity
+            label={row}
+            links={links}
+            action={
+              <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+                Edit
+              </Button>
+            }
+          />
+        ) : undefined
+      }
     >
       {label.isLoading ? (
         <EmptyState text="Loading label…" />
@@ -106,40 +172,6 @@ function LabelDetailPage() {
         <EmptyState text="Label not found in your library." />
       ) : (
         <>
-          <section className="mb-8 border-b border-border pb-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="label-mono text-xs text-muted-foreground">
-                {[row.kind, row.city, row.country].filter(Boolean).join(" · ")}
-              </p>
-              <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
-                Edit
-              </Button>
-            </div>
-            {row.notes && <p className="mt-4 whitespace-pre-wrap text-sm">{row.notes}</p>}
-            <div className="mt-3 flex flex-wrap gap-4 text-sm">
-              {row.website && (
-                <a
-                  href={/^https?:\/\//i.test(row.website) ? row.website : `https://${row.website}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-primary underline"
-                >
-                  Website
-                </a>
-              )}
-              {links.map((link) => (
-                <a
-                  key={link.url}
-                  href={link.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-primary underline"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </div>
-          </section>
           {library.isLoading ? (
             <EmptyState text="Loading library tracks…" />
           ) : library.isError ? (
@@ -211,14 +243,39 @@ function LabelDetailPage() {
                 <section>
                   <h2 className="mb-4 text-xl font-semibold">Artists in your library</h2>
                   <ul className="divide-y divide-border">
-                    {library.data?.artists.map((artist) => (
-                      <li key={artist.name} className="flex justify-between gap-3 py-3">
-                        {artistName(artist.name)}
-                        <span className="label-mono text-xs text-muted-foreground">
-                          {artist.trackCount} tracks
-                        </span>
-                      </li>
-                    ))}
+                    {library.data?.artists.map((artist) => {
+                      const state = localArtistFollowState(
+                        artist.name,
+                        library.data?.followed ?? [],
+                      );
+                      return (
+                        <li
+                          key={artist.name}
+                          className="flex flex-wrap items-center justify-between gap-3 py-3"
+                        >
+                          <div className="min-w-0">
+                            {artistName(artist.name)}
+                            <p className="label-mono mt-1 text-xs text-muted-foreground">
+                              {artist.trackCount} tracks
+                            </p>
+                          </div>
+                          {state.status === "followed" ? (
+                            <span className="label-mono text-xs text-primary">Following</span>
+                          ) : state.status === "available" ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={follow.isPending}
+                              onClick={() => follow.mutate(state.name)}
+                            >
+                              {follow.isPending && follow.variables === state.name
+                                ? "Following…"
+                                : "Follow"}
+                            </Button>
+                          ) : null}
+                        </li>
+                      );
+                    })}
                   </ul>
                   {!library.data?.artists.length && (
                     <p className="text-sm text-muted-foreground">No artists represented yet.</p>

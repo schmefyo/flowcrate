@@ -1,4 +1,34 @@
-import type { AliasRow } from "./artist-name";
+import { allNamesFor, normalizeArtistName, type AliasRow } from "./artist-name";
+
+export type LocalArtistFollowState =
+  | { status: "followed"; name: string }
+  | { status: "available"; name: string }
+  | { status: "ambiguous"; name: null };
+
+/** Conservative local-credit policy; exact known aliases take precedence over guesswork. */
+export function localArtistFollowState(name: string, followed: AliasRow[]): LocalArtistFollowState {
+  const target = resolveLocalArtist(name, followed);
+  if (target) return { status: "followed", name: target };
+  const clean = name.trim();
+  const key = normalizeArtistName(clean);
+  const collision = followed.some((row) =>
+    allNamesFor(row).some((alias) => normalizeArtistName(alias) === key),
+  );
+  const combined =
+    /[,;&+]|\s\/|\/\s|\b(?:feat\.?|ft\.?|vs\.?|b2b|and|with|presents)\b|\s[x×]\s/i.test(clean);
+  const unknown = /^(?:unknown(?: artist)?|various(?: artists)?|v\.?a\.?|id|untitled)$/i.test(
+    clean,
+  );
+  if (
+    !/[\p{L}\p{N}]/u.test(clean) ||
+    /[\r\n<>]|https?:\/\//i.test(clean) ||
+    unknown ||
+    combined ||
+    collision
+  )
+    return { status: "ambiguous", name: null };
+  return { status: "available", name: clean };
+}
 
 // Match whole names/explicit aliases only. Do not guess collaborations or strip punctuation.
 export function resolveLocalArtist(name: string, followed: AliasRow[]): string | null {

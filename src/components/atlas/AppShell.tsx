@@ -16,11 +16,13 @@ export function AppShell({
   title,
   subtitle,
   action,
+  header,
   children,
 }: {
   title: string;
   subtitle?: string | undefined;
   action?: ReactNode | undefined;
+  header?: ReactNode | undefined;
   children: ReactNode;
 }) {
   const navigate = useNavigate();
@@ -59,13 +61,15 @@ export function AppShell({
       </header>
 
       <main className="mx-auto max-w-[88rem] px-4 py-8 sm:px-6 sm:py-12">
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6 sm:mb-10">
-          <div>
-            <h1 className="fc-page-title">{title}</h1>
-            {subtitle ? <p className="mt-3 text-sm text-muted-foreground">{subtitle}</p> : null}
+        {header ?? (
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6 sm:mb-10">
+            <div>
+              <h1 className="fc-page-title">{title}</h1>
+              {subtitle ? <p className="mt-3 text-sm text-muted-foreground">{subtitle}</p> : null}
+            </div>
+            {action}
           </div>
-          {action}
-        </div>
+        )}
         {children}
       </main>
     </div>

@@ -18,8 +18,21 @@ import { enrichExistingTrack } from "@/lib/enrich-track";
 import { useSourceCacheWarmup } from "@/lib/source-cache-warmup";
 import { artistLinks } from "@/lib/artist-links";
 import { sortSetsByTitleDate } from "@/lib/set-date";
-import { allNamesFor, normalizeArtistName } from "@/lib/artist-name";
+import { allNamesFor } from "@/lib/artist-name";
 import { artistTrackDisplayState } from "@/lib/artist-track-state";
+import { ArtistIdentity } from "@/components/atlas/ArtistIdentity";
+import { artistLabelContext, artistSetContext, resolveLocalLabel } from "@/lib/artist-profile";
+import { followArtist, unfollowArtist } from "@/lib/artist-follow";
+import { readLibraryPages, resolveLocalArtist } from "@/lib/label-library";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import type { FeedTrack } from "@/lib/discover.server";
 
 export const Route = createFileRoute("/_authenticated/artists/$name")({
@@ -56,6 +69,7 @@ function ArtistPage() {
   const [setLimit, setSetLimit] = useState(50);
   const [visible, setVisible] = useState(50);
   const [hideOwned, setHideOwned] = useState(true);
+  const [confirmUnfollow, setConfirmUnfollow] = useState(false);
   const [justSaved, setJustSaved] = useState<Set<string>>(() => new Set());
   const [resolved, setResolved] = useState<
     Record<string, { previewUrl: string | null; artworkUrl: string | null }>
@@ -68,13 +82,15 @@ function ArtistPage() {
   const artist = useQuery({
     queryKey: ["artist", name],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("followed_djs")
-        .select("id, name, url, notes, links, aliases")
-        .eq("name", name)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
+      const rows = await readLibraryPages((from, to) =>
+        supabase
+          .from("followed_djs")
+          .select("id, name, url, notes, links, aliases, scenes")
+          .order("id")
+          .range(from, to),
+      );
+      const target = resolveLocalArtist(name, rows);
+      return rows.find((row) => row.name === target) ?? null;
     },
   });
 
@@ -99,12 +115,20 @@ function ArtistPage() {
   });
 
   const tracksQuery = useQuery({
-    queryKey: ["tracks"],
+    queryKey: ["tracks", "artist-context"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("tracks").select("id, title, artist");
-      if (error) throw error;
-      return data ?? [];
+      return readLibraryPages((from, to) =>
+        supabase.from("tracks").select("id, title, artist, label_id").order("id").range(from, to),
+      );
     },
+  });
+
+  const labelsQuery = useQuery({
+    queryKey: ["labels"],
+    queryFn: async () =>
+      readLibraryPages((from, to) =>
+        supabase.from("labels").select("*").order("name").order("id").range(from, to),
+      ),
   });
 
   const owned = useMemo(
@@ -127,27 +151,41 @@ function ArtistPage() {
   );
   const pageRows = rows.slice(0, visible);
   const nowPlaying = useNowPlaying();
+  const labelContext = useMemo(
+    () => artistLabelContext(scanNames, allRows, tracksQuery.data ?? [], labelsQuery.data ?? []),
+    [scanNames, allRows, tracksQuery.data, labelsQuery.data],
+  );
+
+  const invalidateFollowing = () => {
+    qc.invalidateQueries({ queryKey: ["artist"] });
+    qc.invalidateQueries({ queryKey: ["artists"] });
+    qc.invalidateQueries({ queryKey: ["followed-djs"] });
+  };
 
   const follow = useMutation({
-    mutationFn: async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      const userId = auth.user?.id;
-      if (!userId) throw new Error("You need to be signed in");
-      const { error } = await supabase.from("followed_djs").insert({
-        user_id: userId,
+    mutationFn: () =>
+      followArtist({
         name,
         url: `https://www.mixesdb.com/w/Category:${encodeURIComponent(name.replace(/ /g, "_"))}`,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["artist", name] });
-      qc.invalidateQueries({ queryKey: ["artists"] });
-      qc.invalidateQueries({ queryKey: ["followed-djs"] });
-      warmSourceCache([name]);
+      }),
+    onSuccess: (result) => {
+      invalidateFollowing();
+      warmSourceCache(result.names);
       toast.success("Following — finding sets…");
     },
     onError: (e: Error) => toast.error(e.message),
+  });
+
+  const unfollow = useMutation({
+    mutationFn: async () => {
+      if (artist.data) await unfollowArtist(artist.data.id);
+    },
+    onSuccess: () => {
+      invalidateFollowing();
+      setConfirmUnfollow(false);
+      toast.success("Unfollowed");
+    },
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const addTrack = useMutation({
@@ -189,38 +227,62 @@ function ArtistPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const links = artistLinks(name, artist.data?.url ?? null, artist.data?.links);
+  const links = artistLinks(name, artist.data?.url ?? null, artist.data?.links).filter((link) =>
+    /^https?:\/\//i.test(link.url),
+  );
+
+  const labelName = (label: { name: string; labelId: string | null }) =>
+    label.labelId ? (
+      <Link
+        to="/labels/$labelId"
+        params={{ labelId: label.labelId }}
+        className="underline decoration-dotted hover:text-primary"
+      >
+        {label.name}
+      </Link>
+    ) : (
+      label.name
+    );
 
   return (
     <AppShell
-      title={name}
-      subtitle="Their newest sets and the tracks they play the most."
-      action={
-        artist.data ? (
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/artists">All artists</Link>
-          </Button>
-        ) : (
-          <Button size="sm" disabled={follow.isPending} onClick={() => follow.mutate()}>
-            Follow
-          </Button>
-        )
+      title={artist.data?.name ?? name}
+      header={
+        <ArtistIdentity
+          name={artist.data?.name ?? name}
+          profile={artist.data}
+          links={links}
+          navigation={
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/artists">All artists</Link>
+            </Button>
+          }
+          action={
+            artist.isError ? (
+              <p className="text-sm text-destructive">Couldn't load follow status right now.</p>
+            ) : artist.isLoading ? (
+              <span className="label-mono text-xs text-muted-foreground">Loading profile…</span>
+            ) : artist.data ? (
+              <>
+                <span className="label-mono text-xs text-primary">Following</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={unfollow.isPending}
+                  onClick={() => setConfirmUnfollow(true)}
+                >
+                  Unfollow
+                </Button>
+              </>
+            ) : (
+              <Button size="sm" disabled={follow.isPending} onClick={() => follow.mutate()}>
+                {follow.isPending ? "Following…" : "Follow"}
+              </Button>
+            )
+          }
+        />
       }
     >
-      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        {links.map((l) => (
-          <a
-            key={l.key}
-            href={l.url}
-            target="_blank"
-            rel="noreferrer"
-            className="underline decoration-dotted hover:text-primary"
-          >
-            {l.label}
-          </a>
-        ))}
-      </div>
-
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <div className="flex gap-1">
           {(["sets", "tracks"] as const).map((t) => (
@@ -230,7 +292,9 @@ function ArtistPage() {
               variant={tab === t ? "default" : "ghost"}
               onClick={() => setTab(t)}
             >
-              {t === "sets" ? `Newest sets (${sets.data?.length ?? 0})` : "Most played tracks"}
+              {t === "sets"
+                ? `Newest known sets (${sets.data?.length ?? 0})`
+                : "Most played tracks"}
             </Button>
           ))}
         </div>
@@ -274,12 +338,19 @@ function ArtistPage() {
         {tab === "sets" ? (
           sets.isLoading ? (
             <p className="py-10 text-center text-sm text-muted-foreground">Finding sets…</p>
+          ) : sets.isError ? (
+            <p className="py-10 text-center text-sm text-destructive">
+              Couldn't load sets right now
+            </p>
           ) : !setRows.length ? (
             <EmptyState text="No sets found" />
           ) : (
             <ul className="divide-y divide-border rounded-md border border-border">
               {setRows.map((set) => (
-                <li key={set.title} className="flex flex-wrap items-center gap-3 p-4">
+                <li
+                  key={`${set.source}:${set.url}`}
+                  className="flex flex-wrap items-center gap-3 p-4"
+                >
                   <div className="min-w-0 flex-1">
                     <a
                       href={set.url}
@@ -289,6 +360,13 @@ function ArtistPage() {
                     >
                       {set.title}
                     </a>
+                    <p className="label-mono mt-2 text-xs text-muted-foreground">
+                      {artistSetContext(set).source}
+                      {artistSetContext(set).date
+                        ? ` · ${artistSetContext(set).dateLabel}: ${artistSetContext(set).date}`
+                        : ""}{" "}
+                      · Source link ↗
+                    </p>
                   </div>
                 </li>
               ))}
@@ -343,9 +421,18 @@ function ArtistPage() {
                           onClick={() => setSelected(track)}
                           className="inline-flex cursor-pointer"
                         >
-                          <Badge variant="secondary">{track.plays}× in their sets</Badge>
+                          <Badge variant="secondary">
+                            In {track.plays} known {track.plays === 1 ? "set" : "sets"}
+                          </Badge>
                         </button>
-                        {track.label ? <span>{track.label}</span> : null}
+                        {track.label ? (
+                          <span>
+                            {labelName({
+                              name: track.label,
+                              labelId: resolveLocalLabel(track.label, labelsQuery.data ?? []),
+                            })}
+                          </span>
+                        ) : null}
                       </div>
                     </div>
                     <Button
@@ -375,6 +462,88 @@ function ArtistPage() {
           </>
         )}
       </div>
+
+      <section className="mt-10 border-t border-border pt-6" aria-label="Label connections">
+        <h2 className="fc-section-title text-xl">Label connections</h2>
+        {labelsQuery.isError || tracksQuery.isError ? (
+          <p className="mt-4 text-sm text-muted-foreground">
+            Couldn't load library label connections right now.
+          </p>
+        ) : labelsQuery.isLoading || tracksQuery.isLoading ? (
+          <p className="mt-4 text-sm text-muted-foreground">Loading label connections…</p>
+        ) : (
+          <div className="mt-5 grid gap-6 md:grid-cols-2">
+            <section>
+              <h3 className="font-semibold">Labels in known tracklists</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Label text observed in the current Most played tracks scan; these aren't confirmed
+                artist affiliations.
+              </p>
+              {labelContext.known.length ? (
+                <ul className="mt-3 divide-y divide-border">
+                  {labelContext.known.map((label) => (
+                    <li key={label.name} className="flex flex-wrap justify-between gap-2 py-3">
+                      {labelName(label)}
+                      <span className="label-mono text-xs text-muted-foreground">
+                        {label.trackCount} {label.trackCount === 1 ? "track" : "tracks"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  {feed.isError
+                    ? "Tracklist label data is temporarily unavailable."
+                    : feed.isLoading
+                      ? "Finding tracklists…"
+                      : !feed.data
+                        ? "Open Most played tracks to explore observed labels."
+                        : "No label text found in this scan."}
+                </p>
+              )}
+            </section>
+            <section>
+              <h3 className="font-semibold">Labels in your library</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Your label assignments on saved tracks credited to this artist or their stored
+                aliases.
+              </p>
+              <ul className="mt-3 divide-y divide-border">
+                {labelContext.library.map((label) => (
+                  <li key={label.labelId} className="flex flex-wrap justify-between gap-2 py-3">
+                    {labelName(label)}
+                    <span className="label-mono text-xs text-muted-foreground">
+                      {label.trackCount} {label.trackCount === 1 ? "track" : "tracks"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {!labelContext.library.length && (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  No label assignments for this artist's tracks yet.
+                </p>
+              )}
+            </section>
+          </div>
+        )}
+      </section>
+
+      <AlertDialog open={confirmUnfollow} onOpenChange={setConfirmUnfollow}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unfollow {artist.data?.name ?? name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your saved tracks and crates will stay in your library.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button disabled={unfollow.isPending} onClick={() => unfollow.mutate()}>
+              {unfollow.isPending ? "Unfollowing…" : "Unfollow"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <SetsDialog
         track={selected}
