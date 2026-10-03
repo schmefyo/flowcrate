@@ -13,6 +13,7 @@ import { DiscoverPreview } from "@/components/atlas/DiscoverPreview";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { lookupMixCounts } from "@/lib/mix-count.functions";
+import { lookupMixCountsWithFallback } from "@/lib/mixesdb-browser-fallback";
 import type { MixCount } from "@/lib/mix-count.server";
 
 type Seed = { artist: string; title: string };
@@ -127,7 +128,10 @@ export function CrateMatches({ crateId, seeds }: { crateId: string; seeds: Seed[
     let cancelled = false;
     void (async () => {
       try {
-        const found = (await counts({ data: { items: missing } })) as MixCount[];
+        const found = (await lookupMixCountsWithFallback(
+          { data: { items: missing } },
+          counts,
+        )) as MixCount[];
         if (cancelled) return;
         setMixTotals((prev) => {
           const next = { ...prev };

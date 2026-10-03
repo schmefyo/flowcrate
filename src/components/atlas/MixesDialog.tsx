@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { lookupMixes } from "@/lib/mixesdb.functions";
+import { lookupMixesWithFallback } from "@/lib/mixesdb-browser-fallback";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { TrackWithLabel } from "@/lib/atlas";
 
@@ -17,7 +18,8 @@ export function MixesDialog({ track, knownTotal, onOpenChange }: Props) {
     enabled: !!track,
     staleTime: 1000 * 60 * 30,
     retry: false,
-    queryFn: async () => lookup({ data: { artist: track!.artist, title: track!.title } }),
+    queryFn: async () =>
+      lookupMixesWithFallback({ data: { artist: track!.artist, title: track!.title } }, lookup),
   });
 
   return (

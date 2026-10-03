@@ -27,6 +27,7 @@ import { eventDateForSet } from "@/lib/set-date";
 import { popularityScore, slotCount, type Slot } from "@/lib/discover-rank";
 import { lookupPopularity } from "@/lib/popularity.functions";
 import { lookupMixCounts } from "@/lib/mix-count.functions";
+import { lookupMixCountsWithFallback } from "@/lib/mixesdb-browser-fallback";
 import { eligibleFollowedArtists } from "@/lib/followed-artists";
 import type { MixCount } from "@/lib/mix-count.server";
 import type { Popularity } from "@/lib/popularity.server";
@@ -271,9 +272,12 @@ function DiscoverPage() {
     let failed = 0;
     try {
       for (let i = 0; i < pending.length; i += 25) {
-        const found = (await lookupCounts({
-          data: { items: pending.slice(i, i + 25) },
-        })) as MixCount[];
+        const found = (await lookupMixCountsWithFallback(
+          {
+            data: { items: pending.slice(i, i + 25) },
+          },
+          lookupCounts,
+        )) as MixCount[];
         for (const count of found) {
           if (count.ok) totals[count.key] = count.total;
           else failed += 1;

@@ -4,6 +4,7 @@ import { lookupTrackByUrl, enrichTrackByNameFn } from "@/lib/track-import.functi
 import { enrichExistingTrack } from "@/lib/enrich-track";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { lookupMixCounts } from "@/lib/mix-count.functions";
+import { lookupMixCountsWithFallback } from "@/lib/mixesdb-browser-fallback";
 import type { MixCount } from "@/lib/mix-count.server";
 import {
   mixCountRequest,
@@ -343,9 +344,12 @@ function TracksPage() {
       for (let i = 0; i < pending.length; i += MIX_COUNT_BATCH_SIZE) {
         const batch = pending.slice(i, i + MIX_COUNT_BATCH_SIZE);
         try {
-          const results = (await counts({
-            data: mixCountRequest(batch),
-          })) as MixCount[];
+          const results = (await lookupMixCountsWithFallback(
+            {
+              data: mixCountRequest(batch),
+            },
+            counts,
+          )) as MixCount[];
           const totals: Record<string, number> = {};
           const returned = new Set<string>();
           for (const result of results) {
