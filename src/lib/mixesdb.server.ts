@@ -46,6 +46,10 @@ export async function findMixesForTrack(
 
   let json: Record<string, any> | null = null;
   for (let attempt = 0; attempt < 2; attempt += 1) {
+    const startedAt = Date.now();
+    let stage = "fetch";
+    let status: number | null = null;
+    let responseType = "unknown";
     try {
       const res = await fetch(`${API}?${params.toString()}`, {
         headers: {
@@ -55,10 +59,37 @@ export async function findMixesForTrack(
         redirect: "follow",
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
+      status = res.status;
+      const contentType = res.headers.get("content-type") ?? "";
+      responseType = contentType.includes("json")
+        ? "json"
+        : contentType.includes("html")
+          ? "html"
+          : "other";
+      stage = "http";
       if (!res.ok) throw new Error(`MixesDB returned ${res.status}`);
+      stage = "json";
       json = (await res.json()) as Record<string, any>;
       break;
-    } catch {
+    } catch (error) {
+      // Deliberately omit query, URLs, response bodies, and raw error messages.
+      const errorName = error instanceof Error ? error.name : "UnknownError";
+      const failure =
+        errorName === "TimeoutError" || errorName === "AbortError"
+          ? "timeout"
+          : stage === "http"
+            ? "http"
+            : stage === "json"
+              ? "invalid-json"
+              : "network";
+      console.warn("[mixesdb-track-search] request failed", {
+        attempt: attempt + 1,
+        failure,
+        status,
+        responseType,
+        durationMs: Date.now() - startedAt,
+        willRetry: attempt === 0,
+      });
       if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 250));
     }
   }
