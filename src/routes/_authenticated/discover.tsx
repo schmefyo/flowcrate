@@ -27,6 +27,8 @@ import { eventDateForSet } from "@/lib/set-date";
 import { popularityScore, slotCount, type Slot } from "@/lib/discover-rank";
 import { lookupPopularity } from "@/lib/popularity.functions";
 import { lookupMixCounts } from "@/lib/mix-count.functions";
+import { saveDiscoveredTrack } from "@/lib/discovery-storage";
+import { discoverySources } from "@/lib/discovery-provenance";
 import { lookupMixCountsWithFallback } from "@/lib/mixesdb-browser-fallback";
 import { eligibleFollowedArtists } from "@/lib/followed-artists";
 import type { MixCount } from "@/lib/mix-count.server";
@@ -298,29 +300,35 @@ function DiscoverPage() {
       const { data: auth } = await supabase.auth.getUser();
       const userId = auth.user?.id;
       if (!userId) throw new Error("You need to be signed in");
-      const { data: inserted, error } = await supabase
-        .from("tracks")
-        .insert({
-          user_id: userId,
-          title: track.title,
-          artist: track.artist,
-          notes: `Played by ${track.djs.join(", ")} (${track.plays}×, via MixesDB)`,
-          preview_url: extra?.previewUrl ?? null,
-          artwork_url: extra?.artworkUrl ?? null,
-        })
-        .select("*")
-        .single();
-      if (error) throw error;
+      const { track: inserted, created } = await saveDiscoveredTrack({
+        title: track.title,
+        artist: track.artist,
+        sources: discoverySources(
+          (track.discoverySources ?? []).map((s) => ({
+            title: s.set_title,
+            url: s.set_url,
+            dj: s.dj_name ?? undefined,
+            source: s.provider,
+          })),
+          follows.data ?? [],
+        ),
+        notes: `Played by ${track.djs.join(", ")} (${track.plays}×, via MixesDB)`,
+        previewUrl: extra?.previewUrl ?? null,
+        artworkUrl: extra?.artworkUrl ?? null,
+      });
+      if (!created)
+        return { created, found: [], track: { id: inserted.id, title: inserted.title } };
       try {
         const found = await enrichExistingTrack(enrich, inserted as never);
-        return { found, track: { id: inserted.id, title: inserted.title } };
+        return { created, found, track: { id: inserted.id, title: inserted.title } };
       } catch {
-        return { found: [], track: { id: inserted.id, title: inserted.title } };
+        return { created, found: [], track: { id: inserted.id, title: inserted.title } };
       }
     },
-    onSuccess: ({ track }) => {
+    onSuccess: ({ track, created }) => {
       qc.invalidateQueries({ queryKey: ["tracks"] });
-      toast.success("Saved to Tracks", {
+      qc.invalidateQueries({ queryKey: ["discovery-history"] });
+      toast.success(created ? "Saved to Tracks" : "Discovery context saved", {
         action: {
           label: "Add to Crate",
           onClick: () => setAddToCrateTrack(track),
@@ -534,9 +542,17 @@ function DiscoverPage() {
                           </div>
                         </div>
                         {already ? (
-                          <span className="label-mono px-2 py-1 text-xs font-semibold text-primary">
-                            Saved
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="label-mono text-xs text-primary">Saved</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              disabled={addTrack.isPending}
+                              onClick={() => addTrack.mutate(track)}
+                            >
+                              Save discovery context
+                            </Button>
+                          </div>
                         ) : (
                           <Button
                             size="sm"

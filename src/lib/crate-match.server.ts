@@ -1,5 +1,6 @@
 import { parseTracklist } from "./discover.server";
 import { eventDateFromTitle } from "./set-date";
+import { discoverySources, type DiscoverySource } from "./discovery-provenance";
 
 const API = "https://www.mixesdb.com/w/api.php";
 const UA = { "user-agent": "FlowCrate/1.0 (crate matching)", accept: "application/json" };
@@ -41,6 +42,7 @@ export type GapTrack = {
   label: string | null;
   sets: number;
   examples: { title: string; url: string }[];
+  discoverySources?: DiscoverySource[];
 };
 
 export type CrateMatchResult = {
@@ -203,6 +205,9 @@ export async function crateMatches(
         const existing = agg.get(key);
         if (existing) {
           existing.sets += 1;
+          existing.discoverySources?.push(
+            ...discoverySources([{ title: pageTitle, url: setUrl(pageTitle) }]),
+          );
           if (!existing.label && row.label) existing.label = row.label;
           if (existing.examples.length < 5)
             existing.examples.push({ title: pageTitle, url: setUrl(pageTitle) });
@@ -214,6 +219,7 @@ export async function crateMatches(
             label: row.label,
             sets: 1,
             examples: [{ title: pageTitle, url: setUrl(pageTitle) }],
+            discoverySources: discoverySources([{ title: pageTitle, url: setUrl(pageTitle) }]),
           });
         }
       }

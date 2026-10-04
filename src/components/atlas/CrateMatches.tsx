@@ -15,6 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import { lookupMixCounts } from "@/lib/mix-count.functions";
 import { lookupMixCountsWithFallback } from "@/lib/mixesdb-browser-fallback";
 import type { MixCount } from "@/lib/mix-count.server";
+import type { GapTrack } from "@/lib/crate-match.server";
+import { saveDiscoveredTrack } from "@/lib/discovery-storage";
 
 type Seed = { artist: string; title: string };
 
@@ -52,31 +54,29 @@ export function CrateMatches({ crateId, seeds }: { crateId: string; seeds: Seed[
   });
 
   const addTrack = useMutation({
-    mutationFn: async (t: { key: string; artist: string; title: string; label: string | null }) => {
+    mutationFn: async (t: GapTrack) => {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
       if (!userId) throw new Error("Not signed in");
       const extra = resolved[t.key];
-      const { data: inserted, error } = await supabase
-        .from("tracks")
-        .insert({
-          user_id: userId,
-          title: t.title,
-          artist: t.artist,
-          source: "mixesdb",
-          notes: t.label ? `Label (MixesDB): ${t.label}` : null,
-          preview_url: extra?.previewUrl ?? null,
-          artwork_url: extra?.artworkUrl ?? null,
-        })
-        .select("*")
-        .single();
-      if (error) throw error;
-      const { error: linkError } = await supabase.from("crate_tracks").insert({
-        user_id: userId,
-        crate_id: crateId,
-        track_id: inserted!.id,
-        position: 999,
+      const { track: inserted } = await saveDiscoveredTrack({
+        title: t.title,
+        artist: t.artist,
+        sources: t.discoverySources ?? [],
+        source: "mixesdb",
+        notes: t.label ? `Label (MixesDB): ${t.label}` : null,
+        previewUrl: extra?.previewUrl ?? null,
+        artworkUrl: extra?.artworkUrl ?? null,
       });
+      const { error: linkError } = await supabase.from("crate_tracks").upsert(
+        {
+          user_id: userId,
+          crate_id: crateId,
+          track_id: inserted!.id,
+          position: 999,
+        },
+        { onConflict: "crate_id,track_id", ignoreDuplicates: true },
+      );
       if (linkError) throw linkError;
       // Same metadata chase as Discover, so the track lands complete in both places.
       let found: string[] = [];
@@ -91,6 +91,7 @@ export function CrateMatches({ crateId, seeds }: { crateId: string; seeds: Seed[
       setAdded((prev) => ({ ...prev, [key]: true }));
       qc.invalidateQueries({ queryKey: ["crate-tracks", crateId] });
       qc.invalidateQueries({ queryKey: ["tracks"] });
+      qc.invalidateQueries({ queryKey: ["discovery-history"] });
       qc.invalidateQueries({ queryKey: ["labels"] });
       toast.success(
         found.length ? `Added to crate — found ${found.join(", ")}` : "Added to crate",

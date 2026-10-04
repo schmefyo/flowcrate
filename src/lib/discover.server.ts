@@ -1,5 +1,6 @@
 import { normalizeArtistName } from "./artist-name.ts";
 import { eventDateForSet } from "./set-date.ts";
+import { discoverySources, type DiscoverySource } from "./discovery-provenance.ts";
 
 const API = "https://www.mixesdb.com/w/api.php";
 const REQUEST_TIMEOUT_MS = 8_000;
@@ -109,6 +110,7 @@ export type FeedTrack = {
   label: string | null;
   plays: number;
   sets: { title: string; url: string }[];
+  discoverySources?: DiscoverySource[];
 };
 
 export type Feed = {
@@ -154,6 +156,7 @@ function feedFromSets(dj: string, sets: FeedSet[], setsFound: number): Feed {
       const existing = agg.get(key);
       if (existing) {
         existing.plays += 1;
+        existing.discoverySources?.push(...discoverySources([set]));
         if (!existing.label && row.label) existing.label = row.label;
         if (existing.sets.length < 6)
           existing.sets.push({ title: set.title, url: setUrl(set.title) });
@@ -165,6 +168,7 @@ function feedFromSets(dj: string, sets: FeedSet[], setsFound: number): Feed {
           label: row.label ?? null,
           plays: 1,
           sets: [{ title: set.title, url: setUrl(set.title) }],
+          discoverySources: discoverySources([set]),
         });
       }
     }

@@ -1,4 +1,4 @@
-import { allNamesFor, normalizeArtistName, type AliasRow } from "./artist-name";
+import { allNamesFor, normalizeArtistName, type AliasRow } from "./artist-name.ts";
 
 export type LocalArtistFollowState =
   | { status: "followed"; name: string }

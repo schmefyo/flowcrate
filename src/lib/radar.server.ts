@@ -5,6 +5,7 @@ import { cachedMixesdbSets, cachedRaSets, cachedSoundcloudSets } from "./source-
 import type { MdbSet } from "./mixesdb-sets.server";
 import type { ScSet } from "./soundcloud.server";
 import type { RaSet } from "./ra.server";
+import { discoverySources, type DiscoverySource } from "./discovery-provenance";
 
 /** Where a set (and its tracklist) came from. */
 export type SetSource = "mixesdb" | "soundcloud" | "ra";
@@ -80,6 +81,7 @@ export type RadarTrack = {
   /** Where in a set DJs tend to drop it. */
   slots: SetSlots;
   sets: RadarSet[];
+  discoverySources?: DiscoverySource[];
 };
 
 export type Radar = {
@@ -137,11 +139,7 @@ function physicalSetKey(set: { dj: string; title: string; date?: string | null }
  * Both sources come out of the twice-a-day cache, so this is a fast read.
  * `sinceMonths` limits the scan to sets from that window.
  */
-export async function radarFeed(
-  djs: string[],
-  setLimit = 25,
-  sinceMonths = 0,
-): Promise<Radar> {
+export async function radarFeed(djs: string[], setLimit = 25, sinceMonths = 0): Promise<Radar> {
   const list = names(djs);
   if (!list.length) return { djs: [], setsScanned: 0, tracks: [], newSets: [] };
 
@@ -163,10 +161,14 @@ export async function radarFeed(
   }
   let mdbSets: MdbSet[] = [];
   for (const arr of perDj.values()) {
-    arr.sort((a, b) => Date.parse(eventDateForSet(b) ?? "0") - Date.parse(eventDateForSet(a) ?? "0"));
+    arr.sort(
+      (a, b) => Date.parse(eventDateForSet(b) ?? "0") - Date.parse(eventDateForSet(a) ?? "0"),
+    );
     mdbSets.push(...arr.slice(0, perDjLimit));
   }
-  mdbSets.sort((a, b) => Date.parse(eventDateForSet(b) ?? "0") - Date.parse(eventDateForSet(a) ?? "0"));
+  mdbSets.sort(
+    (a, b) => Date.parse(eventDateForSet(b) ?? "0") - Date.parse(eventDateForSet(a) ?? "0"),
+  );
 
   // A set can belong to several followed DJs — keep one credit per DJ.
   const credits = new Map<string, { set: MdbSet; djs: string[] }>();
@@ -186,7 +188,9 @@ export async function radarFeed(
     playedDate: string | null,
   ) => {
     // Cached scrapes can predate a parser fix, so junk is filtered here too.
-    rows = rows.map(cleanRow).filter((r): r is { artist: string; title: string; label?: string | null } => !!r);
+    rows = rows
+      .map(cleanRow)
+      .filter((r): r is { artist: string; title: string; label?: string | null } => !!r);
     if (!rows.length) return;
     scanned += 1;
     const seen = new Set<string>();
@@ -206,6 +210,7 @@ export async function radarFeed(
           latest: null,
           slots: { opener: 0, peak: 0, closer: 0 },
           sets: [],
+          discoverySources: [],
         };
         agg.set(key, entry);
       }
@@ -216,6 +221,7 @@ export async function radarFeed(
       else if (at >= 0.88) entry.slots.closer += 1;
       else if (at >= 0.5) entry.slots.peak += 1;
       for (const credit of creditSets) {
+        entry.discoverySources?.push(...discoverySources([credit]));
         entry.plays += 1;
         if (!entry.djs.includes(credit.dj)) entry.djs.push(credit.dj);
         if (playedDate && (!entry.latest || Date.parse(playedDate) > Date.parse(entry.latest)))
@@ -264,7 +270,11 @@ export async function radarFeed(
   // in the description, which folds into the same aggregate.
   const scSets = scRaw.filter((s) => {
     const played = eventDateForSet(s);
-    return !isMultiArtistSet(s.title) && withinWindow(played, sinceMonths) && firstTime(s.dj, s.date, s.title);
+    return (
+      !isMultiArtistSet(s.title) &&
+      withinWindow(played, sinceMonths) &&
+      firstTime(s.dj, s.date, s.title)
+    );
   });
   for (const mix of scSets) {
     const played = eventDateForSet(mix);
@@ -289,7 +299,6 @@ export async function radarFeed(
       seenTitles.add(id);
       return true;
     });
-
 
   return { djs: list, setsScanned: scanned, tracks, newSets: newSets.slice(0, 60) };
 }
@@ -322,19 +331,25 @@ export async function radarSets(
   }
   const mdb: RadarSet[] = [];
   for (const arr of perDj.values()) {
-    arr.sort((a, b) => Date.parse(eventDateForSet(b) ?? "0") - Date.parse(eventDateForSet(a) ?? "0"));
+    arr.sort(
+      (a, b) => Date.parse(eventDateForSet(b) ?? "0") - Date.parse(eventDateForSet(a) ?? "0"),
+    );
     mdb.push(...arr.slice(0, setLimit).map(mdbToRadarSet));
   }
 
   const sets = [
     ...mdb,
     ...scToRadarSets(
-      scRaw.filter((s) => !isMultiArtistSet(s.title) && withinWindow(eventDateForSet(s), sinceMonths)),
+      scRaw.filter(
+        (s) => !isMultiArtistSet(s.title) && withinWindow(eventDateForSet(s), sinceMonths),
+      ),
     ),
     ...raToRadarSets(raRaw.filter((s) => withinWindow(eventDateForSet(s), sinceMonths))),
   ];
 
-  sets.sort((a, b) => Date.parse(eventDateForSet(b) ?? "0") - Date.parse(eventDateForSet(a) ?? "0"));
+  sets.sort(
+    (a, b) => Date.parse(eventDateForSet(b) ?? "0") - Date.parse(eventDateForSet(a) ?? "0"),
+  );
 
   const seen = new Set<string>();
   return sets.filter((s) => {

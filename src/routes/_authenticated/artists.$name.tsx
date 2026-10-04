@@ -12,6 +12,8 @@ import { radarSetsFn } from "@/lib/radar.functions";
 import { playingRowClass, useNowPlaying } from "@/lib/playback";
 import { DiscoverPreview } from "@/components/atlas/DiscoverPreview";
 import { SetsDialog } from "@/components/atlas/SetsDialog";
+import { saveDiscoveredTrack } from "@/lib/discovery-storage";
+import { discoverySources } from "@/lib/discovery-provenance";
 import { AddToCrateDialog } from "@/components/atlas/AddToCrateButton";
 import { enrichTrackByNameFn } from "@/lib/track-import.functions";
 import { enrichExistingTrack } from "@/lib/enrich-track";
@@ -90,7 +92,8 @@ function ArtistPage() {
           .range(from, to),
       );
       const target = resolveLocalArtist(name, rows);
-      return rows.find((row) => row.name === target) ?? null;
+      const match = rows.find((row) => row.name === target);
+      return match ? { ...match, identityRows: rows } : null;
     },
   });
 
@@ -194,30 +197,48 @@ function ArtistPage() {
       const { data: auth } = await supabase.auth.getUser();
       const userId = auth.user?.id;
       if (!userId) throw new Error("You need to be signed in");
-      const { data: inserted, error } = await supabase
-        .from("tracks")
-        .insert({
-          user_id: userId,
-          title: track.title,
-          artist: track.artist,
-          notes: `Played by ${name} (${track.plays}×, via MixesDB)`,
-          preview_url: extra?.previewUrl ?? null,
-          artwork_url: extra?.artworkUrl ?? null,
-        })
-        .select("*")
-        .single();
-      if (error) throw error;
+      const { track: inserted, created } = await saveDiscoveredTrack({
+        title: track.title,
+        artist: track.artist,
+        sources: discoverySources(
+          (track.discoverySources ?? []).map((s) => ({
+            title: s.set_title,
+            url: s.set_url,
+            dj: s.dj_name ?? undefined,
+            source: s.provider,
+          })),
+          artist.data?.identityRows ?? [],
+        ),
+        notes: `Played by ${name} (${track.plays}×, via MixesDB)`,
+        previewUrl: extra?.previewUrl ?? null,
+        artworkUrl: extra?.artworkUrl ?? null,
+      });
+      if (!created)
+        return {
+          created,
+          found: [],
+          track: { id: inserted.id, title: inserted.title, key: track.key },
+        };
       try {
         const found = await enrichExistingTrack(enrich, inserted as never);
-        return { found, track: { id: inserted.id, title: inserted.title, key: track.key } };
+        return {
+          created,
+          found,
+          track: { id: inserted.id, title: inserted.title, key: track.key },
+        };
       } catch {
-        return { found: [], track: { id: inserted.id, title: inserted.title, key: track.key } };
+        return {
+          created,
+          found: [],
+          track: { id: inserted.id, title: inserted.title, key: track.key },
+        };
       }
     },
-    onSuccess: ({ track }) => {
+    onSuccess: ({ track, created }) => {
       qc.invalidateQueries({ queryKey: ["tracks"] });
+      qc.invalidateQueries({ queryKey: ["discovery-history"] });
       setJustSaved((previous) => new Set(previous).add(track.key));
-      toast.success("Saved to Tracks", {
+      toast.success(created ? "Saved to Tracks" : "Discovery context saved", {
         action: {
           label: "Add to Crate",
           onClick: () => setAddToCrateTrack(track),
@@ -443,10 +464,10 @@ function ArtistPage() {
                           ? undefined
                           : "transition-colors hover:bg-primary hover:text-primary-foreground"
                       }
-                      disabled={already || addTrack.isPending}
+                      disabled={addTrack.isPending}
                       onClick={() => addTrack.mutate(track)}
                     >
-                      {already ? "Saved" : "Add to Tracks"}
+                      {already ? "Saved · save discovery context" : "Add to Tracks"}
                     </Button>
                   </li>
                 );

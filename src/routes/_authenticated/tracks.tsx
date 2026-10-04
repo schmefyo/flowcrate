@@ -17,6 +17,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell, EmptyState } from "@/components/atlas/AppShell";
 import { MoodManager } from "@/components/atlas/MoodManager";
+import { readDiscoveryHistory } from "@/lib/discovery-storage";
+import { discoveryFilterIndex, matchesDiscoveryFilter } from "@/lib/discovery-provenance";
+import { readLibraryPages } from "@/lib/label-library";
 import { playingRowClass, useNowPlaying } from "@/lib/playback";
 import { DiscoverPreview } from "@/components/atlas/DiscoverPreview";
 import { useMoods } from "@/lib/moods";
@@ -147,6 +150,7 @@ function TracksPage() {
 
   const [search, setSearch] = useState("");
   const [moodFilter, setMoodFilter] = useState<string | null>(null);
+  const [discoveredFrom, setDiscoveredFrom] = useState<string[]>([]);
   const [sortKey, setSortKey] = useState<SortKey>("created_at");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [importUrl, setImportUrl] = useState("");
@@ -196,14 +200,32 @@ function TracksPage() {
   const tracksQuery = useQuery({
     queryKey: ["tracks"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tracks")
-        .select("*, labels(id, name)")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as TrackWithLabel[];
+      return readLibraryPages((from, to) =>
+        supabase
+          .from("tracks")
+          .select("*, labels(id, name)")
+          .order("created_at", { ascending: false })
+          .order("id")
+          .range(from, to),
+      ) as Promise<TrackWithLabel[]>;
     },
   });
+
+  const discoveryHistory = useQuery({
+    queryKey: ["discovery-history"],
+    queryFn: readDiscoveryHistory,
+  });
+  const discoveryArtists = useQuery({
+    queryKey: ["followed-djs", "discovery-filter"],
+    queryFn: () =>
+      readLibraryPages((from, to) =>
+        supabase.from("followed_djs").select("name, aliases").order("id").range(from, to),
+      ),
+  });
+  const discoveryIndex = useMemo(
+    () => discoveryFilterIndex(discoveryHistory.data ?? [], discoveryArtists.data ?? []),
+    [discoveryHistory.data, discoveryArtists.data],
+  );
 
   const labelsQuery = useQuery({
     queryKey: ["labels"],
@@ -310,9 +332,11 @@ function TracksPage() {
         t.artist.toLowerCase().includes(q) ||
         (t.labels?.name ?? "").toLowerCase().includes(q);
       const matchesMood = !moodFilter || (t.moods ?? []).includes(moodFilter);
-      return matchesQ && matchesMood;
+      return (
+        matchesQ && matchesMood && matchesDiscoveryFilter(t.id, discoveredFrom, discoveryIndex)
+      );
     });
-  }, [tracksQuery.data, search, moodFilter]);
+  }, [tracksQuery.data, search, moodFilter, discoveredFrom, discoveryIndex]);
 
   const counts = useServerFn(lookupMixCounts);
   const countKey = useCallback(
@@ -835,6 +859,63 @@ function TracksPage() {
           ) : null}
         </div>
       </div>
+
+      <details className="mb-6 border-b border-border pb-3">
+        <summary className="cursor-pointer text-sm">
+          Discovered from{discoveredFrom.length ? ` (${discoveredFrom.length})` : ""}
+        </summary>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Tracks you saved from these artists’ sets. Select multiple artists to match any of them.
+        </p>
+        {discoveryHistory.isError ? (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Couldn't load discovery history. Existing tracks remain available.
+          </p>
+        ) : discoveryHistory.isLoading ? (
+          <p className="mt-2 text-xs text-muted-foreground">Loading discovery history…</p>
+        ) : (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {[...discoveryIndex.keys()]
+              .sort((a, b) => a.localeCompare(b))
+              .map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  aria-pressed={discoveredFrom.includes(name)}
+                  className={`border px-3 py-1 text-xs ${discoveredFrom.includes(name) ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
+                  onClick={() => {
+                    setDiscoveredFrom((previous) =>
+                      previous.includes(name)
+                        ? previous.filter((n) => n !== name)
+                        : [...previous, name],
+                    );
+                    setVisible(TRACK_BATCH_SIZE);
+                  }}
+                >
+                  {name}
+                </button>
+              ))}
+            {discoveredFrom.length ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setDiscoveredFrom([]);
+                  setVisible(TRACK_BATCH_SIZE);
+                }}
+              >
+                Clear
+              </Button>
+            ) : null}
+            {!discoveryIndex.size ? (
+              <p className="text-xs text-muted-foreground">
+                Discovery context will appear here when you save tracks from sets. Older tracks may
+                have no recorded context.
+              </p>
+            ) : null}
+          </div>
+        )}
+      </details>
 
       {tracksQuery.isLoading ? (
         <EmptyState text="Loading tracks…" />
